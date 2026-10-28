@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "../../../lib/prisma"
 import { compare } from "bcryptjs"
 import { createSession } from "../../../lib/session"
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: Request) {
   try {
