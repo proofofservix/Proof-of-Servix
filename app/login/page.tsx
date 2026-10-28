@@ -22,7 +22,6 @@ export default function Login() {
       })
 
       if (res.ok) {
-        // Force a hard reload so the server reads the new cookie immediately
         window.location.href = "/dashboard"
       } else {
         setError("Invalid email or password")
@@ -45,8 +44,14 @@ export default function Login() {
           onChange={e => setForm({...form, email: e.target.value})} />
           
         <input type="password" placeholder="Password" required
-          className="w-full p-2 mb-4 border rounded"
+          className="w-full p-2 mb-2 border rounded"
           onChange={e => setForm({...form, password: e.target.value})} />
+          
+        <div className="flex justify-end mb-4">
+          <Link href="/forgot-password" className="text-sm text-[#4CAF7D] hover:underline">
+            Forgot Password?
+          </Link>
+        </div>
           
         <button type="submit" disabled={loading} className="w-full bg-[#4CAF7D] text-white p-2 rounded disabled:opacity-50">
           {loading ? "Logging in..." : "Log In"}

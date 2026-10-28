@@ -17,6 +17,8 @@ model User {
   name            String
   organization    String?
   emailVerifiedAt DateTime?
+  resetToken       String?   @unique
+  resetTokenExpiry DateTime?
 
   transactions Transaction[]
 
