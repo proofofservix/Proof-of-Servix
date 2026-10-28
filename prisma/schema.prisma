@@ -183,6 +183,7 @@ model Payment {
   gatewayRef String         @unique
   amount     Int
   status     PaymentStatus  @default(PENDING)
+  reference  String?
   rawPayload Json?
 
   createdAt DateTime @default(now())
