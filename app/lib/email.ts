@@ -1,9 +1,5 @@
 import { Notix } from "notix-js"
 
-console.log("NOTIX KEY STATUS:", process.env.NOTIX_API_KEY ? "✅ LOADED" : "❌ MISSING")
-
-const notix = new Notix(process.env.NOTIX_API_KEY!)
-
 export async function sendEmail({
   to,
   subject,
@@ -14,6 +10,14 @@ export async function sendEmail({
   html: string
 }) {
   try {
+    // Initialize Notix inside the function so it doesn't break the build
+    const apiKey = process.env.NOTIX_API_KEY
+    if (!apiKey) {
+      throw new Error("NOTIX_API_KEY is missing from environment variables")
+    }
+    
+    const notix = new Notix(apiKey)
+
     console.log(`Attempting to send email to: ${to}`)
     
     const { data, error } = await notix.emails.send({
