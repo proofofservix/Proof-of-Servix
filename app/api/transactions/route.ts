@@ -18,18 +18,15 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 })
     }
 
-    // Get the sender's name for the email
     const sender = await prisma.user.findUnique({ where: { id: senderId } })
     const senderName = sender?.name || "A sender"
 
-    // 1. Convert file to Base64 (Instead of writing to disk)
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     const sha256 = createHash("sha256").update(buffer).digest("hex")
     const base64Data = buffer.toString("base64")
 
     const reference = `POS-${new Date().getFullYear()}-${Math.floor(Math.random() * 100000).toString().padStart(5, "0")}`
-    
     const rawToken = randomUUID()
 
     const transaction = await prisma.transaction.create({
@@ -63,8 +60,7 @@ export async function POST(req: Request) {
 
     const recipientLink = `${process.env.APP_URL || "http://localhost:3000"}/serve/${rawToken}`
     
-    // ACTUALLY SEND THE EMAIL
-    await sendEmail({
+    const emailResult = await sendEmail({
       to: recipientEmail,
       subject: "You have received a document - Proof of Servix",
       html: `
@@ -80,8 +76,13 @@ export async function POST(req: Request) {
       `,
     })
 
+    if (!emailResult.success) {
+      console.error("Email failed to send:", emailResult.error)
+      return NextResponse.json({ error: "Failed to send email" }, { status: 500 })
+    }
+
     console.log("\n=============================================")
-    console.log(`📧 ATTEMPTED TO SEND EMAIL TO: ${recipientEmail}`)
+    console.log(`📧 EMAIL SENT TO: ${recipientEmail}`)
     console.log(`🔗 SECURE LINK: ${recipientLink}`)
     console.log("=============================================\n")
 
