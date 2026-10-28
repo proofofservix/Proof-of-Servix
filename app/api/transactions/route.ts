@@ -2,9 +2,6 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/app/lib/prisma"
 import { sendEmail } from "@/app/lib/email"
 import { createHash, randomUUID } from "crypto"
-import { writeFile, mkdir } from "fs/promises"
-import { existsSync } from "fs"
-import path from "path"
 
 export async function POST(req: Request) {
   try {
@@ -25,17 +22,11 @@ export async function POST(req: Request) {
     const sender = await prisma.user.findUnique({ where: { id: senderId } })
     const senderName = sender?.name || "A sender"
 
+    // 1. Convert file to Base64 (Instead of writing to disk)
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
     const sha256 = createHash("sha256").update(buffer).digest("hex")
-
-    const uploadDir = path.join(process.cwd(), "public", "uploads")
-    if (!existsSync(uploadDir)) {
-      await mkdir(uploadDir, { recursive: true })
-    }
-    const uniqueFilename = `${randomUUID()}-${file.name}`
-    const filePath = path.join(uploadDir, uniqueFilename)
-    await writeFile(filePath, buffer)
+    const base64Data = buffer.toString("base64")
 
     const reference = `POS-${new Date().getFullYear()}-${Math.floor(Math.random() * 100000).toString().padStart(5, "0")}`
     
@@ -53,7 +44,7 @@ export async function POST(req: Request) {
             filename: file.name,
             mimeType: file.type,
             sizeBytes: file.size,
-            storageKey: `/uploads/${uniqueFilename}`,
+            storageKey: `data:${file.type};base64,${base64Data}`,
             sha256
           }
         },
@@ -70,7 +61,8 @@ export async function POST(req: Request) {
       }
     })
 
-const recipientLink = `https://proof-of-servix.vercel.app/serve/${rawToken}`    
+    const recipientLink = `${process.env.APP_URL || "http://localhost:3000"}/serve/${rawToken}`
+    
     // ACTUALLY SEND THE EMAIL
     await sendEmail({
       to: recipientEmail,
