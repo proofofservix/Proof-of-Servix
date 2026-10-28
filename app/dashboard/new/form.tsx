@@ -14,7 +14,7 @@ export default function Form({ senderId }: { senderId: string }) {
   const [error, setError] = useState("")
   const [successLink, setSuccessLink] = useState("")
 
-  const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!file) return setError("Please select a file")
     if (!documentTitle) return setError("Please provide a document title")
@@ -32,6 +32,7 @@ export default function Form({ senderId }: { senderId: string }) {
     formData.append("senderId", senderId)
 
     try {
+      // 1. Create the transaction in our DB (Status: PENDING_PAYMENT)
       const res = await fetch("/api/transactions", {
         method: "POST",
         body: formData
@@ -39,7 +40,23 @@ export default function Form({ senderId }: { senderId: string }) {
 
       if (res.ok) {
         const data = await res.json()
-        setSuccessLink(data.recipientLink)
+        
+        // 2. Initialize Paystack and get the checkout URL
+        const paystackRes = await fetch("/api/paystack/initialize", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ transactionId: data.transaction.id })
+        })
+
+        const paystackData = await paystackRes.json()
+
+        if (paystackData.authorization_url) {
+          // 3. Redirect the user to Paystack to pay
+          window.location.href = paystackData.authorization_url
+        } else {
+          setError(paystackData.error || "Failed to initialize payment")
+          setLoading(false)
+        }
       } else {
         const data = await res.json()
         setError(data.error || "Something went wrong")
