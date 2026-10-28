@@ -10,7 +10,6 @@ export async function sendEmail({
   html: string
 }) {
   try {
-    // Initialize Notix inside the function so it doesn't break the build
     const apiKey = process.env.NOTIX_API_KEY
     if (!apiKey) {
       throw new Error("NOTIX_API_KEY is missing from environment variables")
@@ -21,7 +20,8 @@ export async function sendEmail({
     console.log(`Attempting to send email to: ${to}`)
     
     const { data, error } = await notix.emails.send({
-      from: "Proof of Servix <noreply@mail.proofofservix.com>",
+      // Simplified: No display name, just the raw email on the verified domain
+      from: "noreply@mail.proofofservix.com", 
       to,
       subject,
       html,
