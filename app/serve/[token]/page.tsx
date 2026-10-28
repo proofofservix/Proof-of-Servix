@@ -1,6 +1,8 @@
 import { prisma } from "@/app/lib/prisma"
 import ClientActions from "./ClientActions"
+
 export const instant = false
+
 export default async function ServePage({ 
   params 
 }: { 
@@ -57,7 +59,7 @@ export default async function ServePage({
           token={token} 
           hasEmail={!!recipient.email} 
           hasPhone={!!recipient.whatsapp}
-          documentUrl={recipient.transaction.documents[0]?.storageKey || "#"}
+          documentId={recipient.transaction.documents[0]?.id || ""}
         />
 
       </div>

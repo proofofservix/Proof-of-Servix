@@ -5,12 +5,12 @@ export default function ClientActions({
   token, 
   hasEmail, 
   hasPhone, 
-  documentUrl 
+  documentId 
 }: { 
   token: string, 
   hasEmail: boolean, 
   hasPhone: boolean, 
-  documentUrl: string 
+  documentId: string 
 }) {
   const [step, setStep] = useState<"start" | "choose" | "otp" | "verified">("start")
   const [channel, setChannel] = useState<"email" | "sms">("email")
@@ -61,7 +61,7 @@ export default function ClientActions({
       body: JSON.stringify({ token })
     })
     setLoading(false)
-    window.open(documentUrl, "_blank")
+    window.open(`/api/documents/${documentId}`, "_blank")
     window.location.reload() 
   }
 
@@ -73,7 +73,7 @@ export default function ClientActions({
         </div>
 
         <a 
-          href={documentUrl} 
+          href={`/api/documents/${documentId}`} 
           target="_blank"
           rel="noopener noreferrer"
           className="block w-full bg-gray-100 text-gray-800 border border-gray-300 p-3 rounded font-bold hover:bg-gray-200"
