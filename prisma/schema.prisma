@@ -1,0 +1,188 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// SENDER
+// ─────────────────────────────────────────────
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  phone           String?
+  passwordHash    String
+  name            String
+  organization    String?
+  emailVerifiedAt DateTime?
+
+  transactions Transaction[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────
+// TRANSACTION
+// ─────────────────────────────────────────────
+enum TransactionStatus {
+  PENDING_PAYMENT
+  DISPATCHED
+  ACKNOWLEDGED
+  EXPIRED
+  CANCELLED
+}
+
+model Transaction {
+  id        String @id @default(cuid())
+  reference String @unique
+  senderId  String
+  sender    User   @relation(fields: [senderId], references: [id])
+
+  status TransactionStatus @default(PENDING_PAYMENT)
+
+  feeAmount    Int
+  paidAt       DateTime?
+  dispatchedAt DateTime?
+  expiresAt    DateTime?
+
+  documents    Document[]
+  recipients   TransactionRecipient[]
+  events       Event[]
+  payments     Payment[]
+  certificates Certificate[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────
+// DOCUMENT
+// ─────────────────────────────────────────────
+model Document {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+
+  title      String
+  filename   String
+  mimeType   String
+  sizeBytes  Int
+  storageKey String
+  sha256     String
+
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────
+// RECIPIENT
+// ─────────────────────────────────────────────
+enum RecipientStatus {
+  PENDING
+  VERIFIED
+  ACKNOWLEDGED
+  REFUSED
+  EXPIRED
+}
+
+model TransactionRecipient {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+
+  name         String
+  organization String?
+  email        String?
+  whatsapp     String?
+
+  linkTokenHash String    @unique
+  linkExpiresAt DateTime
+
+  status RecipientStatus @default(PENDING)
+
+  verifiedAt     DateTime?
+  acknowledgedAt DateTime?
+  refusedAt      DateTime?
+  downloadedAt   DateTime?
+  
+  accessIp       String?
+  accessDevice   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ─────────────────────────────────────────────
+// EVENT
+// ─────────────────────────────────────────────
+model Event {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+
+  recipientId String?
+  type        String
+  channel     String?
+  actor       String
+  metadata    Json?
+
+  prevHash  String?
+  entryHash String  @unique
+
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────
+// CERTIFICATE
+// ─────────────────────────────────────────────
+enum CertificateType {
+  SSR
+  CSA
+}
+
+model Certificate {
+  id            String      @id @default(cuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  recipientId   String?
+
+  type        CertificateType
+  uniqueId    String          @unique
+  pdfKey      String
+  contentHash String
+
+  issuedAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────
+// PAYMENT
+// ─────────────────────────────────────────────
+enum PaymentPurpose {
+  SERVICE
+  VERIFICATION
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
+  REFUNDED
+}
+
+model Payment {
+  id            String       @id @default(cuid())
+  transactionId String?
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+
+  purpose    PaymentPurpose
+  gateway    String
+  gatewayRef String         @unique
+  amount     Int
+  status     PaymentStatus  @default(PENDING)
+  rawPayload Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
