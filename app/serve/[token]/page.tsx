@@ -1,6 +1,6 @@
 import { prisma } from "@/app/lib/prisma"
 import ClientActions from "./ClientActions"
-
+export const instant = false
 export default async function ServePage({ 
   params 
 }: { 
