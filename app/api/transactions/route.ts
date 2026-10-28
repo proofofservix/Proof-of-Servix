@@ -70,8 +70,7 @@ export async function POST(req: Request) {
       }
     })
 
-    const recipientLink = `http://localhost:3000/serve/${rawToken}`
-    
+const recipientLink = `https://proof-of-servix.vercel.app/serve/${rawToken}`    
     // ACTUALLY SEND THE EMAIL
     await sendEmail({
       to: recipientEmail,
