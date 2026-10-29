@@ -16,7 +16,11 @@ model User {
   passwordHash    String
   name            String
   organization    String?
-  emailVerifiedAt DateTime?
+  
+  emailVerifiedAt    DateTime?
+  verificationToken  String?   @unique
+  verificationExpiry DateTime?
+  
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
 

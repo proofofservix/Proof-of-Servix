@@ -21,10 +21,12 @@ export default function Login() {
         body: JSON.stringify(form)
       })
 
+      const data = await res.json()
+
       if (res.ok) {
         window.location.href = "/dashboard"
       } else {
-        setError("Invalid email or password")
+        setError(data.error || "Invalid email or password")
         setLoading(false)
       }
     } catch (err) {
