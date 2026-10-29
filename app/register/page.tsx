@@ -5,7 +5,7 @@ import Link from "next/link"
 
 export default function Register() {
   const router = useRouter()
-  const [form, setForm] = useState({ name: "", organization: "", email: "", password: "" })
+  const [form, setForm] = useState({ name: "", organization: "", email: "", password: "", confirmPassword: "" })
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
@@ -13,12 +13,22 @@ export default function Register() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    
+    if (form.password !== form.confirmPassword) {
+      return setError("Passwords do not match")
+    }
+
     setLoading(true)
 
     const res = await fetch("/api/register", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form)
+      body: JSON.stringify({
+        name: form.name,
+        organization: form.organization,
+        email: form.email,
+        password: form.password
+      })
     })
 
     if (res.ok) {
@@ -88,6 +98,10 @@ export default function Register() {
         <input type="password" placeholder="Password" required
           className="w-full p-2 mb-4 border rounded"
           onChange={e => setForm({...form, password: e.target.value})} />
+
+        <input type="password" placeholder="Confirm Password" required
+          className="w-full p-2 mb-4 border rounded"
+          onChange={e => setForm({...form, confirmPassword: e.target.value})} />
           
         <button type="submit" disabled={loading} className="w-full bg-[#4CAF7D] text-white p-2 rounded disabled:opacity-50 font-bold">
           {loading ? "Creating..." : "Register"}

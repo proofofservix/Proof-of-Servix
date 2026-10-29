@@ -2,7 +2,7 @@
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 
-export default function Navbar({ isAdmin = false }: { isAdmin?: boolean }) {
+export default function Navbar({ isAdmin = false, profilePicture }: { isAdmin?: boolean, profilePicture?: string | null }) {
   const router = useRouter()
 
   const handleLogout = async () => {
@@ -29,6 +29,9 @@ export default function Navbar({ isAdmin = false }: { isAdmin?: boolean }) {
       </div>
 
       <div className="flex items-center gap-4">
+        {profilePicture && (
+          <img src={profilePicture} alt="Profile" className="w-8 h-8 rounded-full object-cover border" />
+        )}
         <button 
           onClick={handleLogout}
           className="text-sm font-medium text-red-600 hover:text-red-700"

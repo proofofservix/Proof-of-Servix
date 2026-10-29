@@ -16,6 +16,7 @@ model User {
   passwordHash    String?
   name            String
   organization    String?
+  profilePicture  String?   @db.Text
   isAdmin         Boolean   @default(false)
   
   emailVerifiedAt    DateTime?

@@ -18,7 +18,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar isAdmin={user?.isAdmin} />
+      <Navbar isAdmin={user?.isAdmin} profilePicture={user?.profilePicture} />
       <main>{children}</main>
     </div>
   )
