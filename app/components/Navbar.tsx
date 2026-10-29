@@ -25,13 +25,22 @@ export default function Navbar({ isAdmin = false, profilePicture }: { isAdmin?: 
               Admin Panel
             </Link>
           )}
+          <Link href="/dashboard/settings" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+            Settings
+          </Link>
         </div>
       </div>
 
       <div className="flex items-center gap-4">
-        {profilePicture && (
-          <img src={profilePicture} alt="Profile" className="w-8 h-8 rounded-full object-cover border" />
-        )}
+        <Link href="/dashboard/settings">
+          {profilePicture ? (
+            <img src={profilePicture} alt="Profile" className="w-9 h-9 rounded-full object-cover border hover:ring-2 hover:ring-[#4CAF7D] transition-all" />
+          ) : (
+            <div className="w-9 h-9 rounded-full bg-gray-100 border flex items-center justify-center text-gray-500 hover:ring-2 hover:ring-[#4CAF7D] transition-all">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+            </div>
+          )}
+        </Link>
         <button 
           onClick={handleLogout}
           className="text-sm font-medium text-red-600 hover:text-red-700"

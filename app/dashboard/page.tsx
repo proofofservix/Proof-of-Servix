@@ -3,7 +3,6 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "../lib/prisma"
 import CopyLinkButton from "./CopyLinkButton"
-import ProfileSettings from "./ProfileSettings"
 
 export const instant = false
 
@@ -13,8 +12,6 @@ export default async function Dashboard() {
   if (!session?.userId) {
     redirect("/login")
   }
-
-  const user = await prisma.user.findUnique({ where: { id: session.userId } })
 
   const transactions = await prisma.transaction.findMany({
     where: { senderId: session.userId },
@@ -102,14 +99,6 @@ export default async function Dashboard() {
           ))}
         </div>
       )}
-
-      <ProfileSettings 
-        userId={session.userId} 
-        initialName={user?.name || ""}
-        initialOrg={user?.organization || ""} 
-        initialPic={user?.profilePicture || null}
-        hasPassword={!!user?.passwordHash}
-      />
     </div>
   )
 }

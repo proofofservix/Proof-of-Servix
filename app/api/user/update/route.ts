@@ -24,21 +24,19 @@ export async function POST(req: Request) {
       updateData.profilePicture = profilePicture
     }
 
-    // Handle password update if requested
     if (newPassword) {
-      if (!currentPassword) {
-        return NextResponse.json({ error: "Current password is required to set a new one" }, { status: 400 })
+      // If the user already has a password, they MUST provide the current one
+      if (user.passwordHash) {
+        if (!currentPassword) {
+          return NextResponse.json({ error: "Current password is required to change your password" }, { status: 400 })
+        }
+        const isValid = await compare(currentPassword, user.passwordHash)
+        if (!isValid) {
+          return NextResponse.json({ error: "Current password is incorrect" }, { status: 400 })
+        }
       }
       
-      if (!user.passwordHash) {
-         return NextResponse.json({ error: "Google users cannot change password here" }, { status: 400 })
-      }
-
-      const isValid = await compare(currentPassword, user.passwordHash)
-      if (!isValid) {
-        return NextResponse.json({ error: "Current password is incorrect" }, { status: 400 })
-      }
-
+      // If they don't have a password (Google user), we just hash and save the new one
       updateData.passwordHash = await hash(newPassword, 10)
     }
 

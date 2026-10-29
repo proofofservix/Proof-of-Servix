@@ -123,10 +123,13 @@ export default function ProfileSettings({
           <p className="text-xs text-gray-500 mt-1">This will appear on your SSR and CSA documents.</p>
         </div>
 
-        {hasPassword ? (
-          <div className="pt-4 border-t">
-            <h3 className="text-sm font-semibold mb-4 text-gray-800">Change Password</h3>
-            <div className="space-y-3">
+        <div className="pt-4 border-t">
+          <h3 className="text-sm font-semibold mb-4 text-gray-800">
+            {hasPassword ? "Change Password" : "Set a Password"}
+          </h3>
+          <div className="space-y-3">
+            {/* Only show current password if they already have one */}
+            {hasPassword && (
               <input 
                 type="password" 
                 placeholder="Current Password" 
@@ -134,20 +137,17 @@ export default function ProfileSettings({
                 onChange={e => setCurrentPassword(e.target.value)}
                 className="w-full p-2 border rounded"
               />
-              <input 
-                type="password" 
-                placeholder="New Password (leave blank to keep current)" 
-                value={newPassword}
-                onChange={e => setNewPassword(e.target.value)}
-                className="w-full p-2 border rounded"
-              />
-            </div>
+            )}
+            
+            <input 
+              type="password" 
+              placeholder={hasPassword ? "New Password (leave blank to keep current)" : "Create a password for email login"} 
+              value={newPassword}
+              onChange={e => setNewPassword(e.target.value)}
+              className="w-full p-2 border rounded"
+            />
           </div>
-        ) : (
-          <div className="pt-4 border-t text-sm text-gray-500">
-            You signed up with Google. Password management is handled by your Google account.
-          </div>
-        )}
+        </div>
 
         <button 
           onClick={handleSave} 
