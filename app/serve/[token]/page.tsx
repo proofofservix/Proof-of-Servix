@@ -1,23 +1,24 @@
 import { prisma } from "@/app/lib/prisma"
+import DocumentViewer from "./DocumentViewer"
 import ClientActions from "./ClientActions"
 
 export const instant = false
 
 export default async function ServePage({ 
-  params 
+  params,
+  searchParams
 }: { 
-  params: Promise<{ token: string }> 
+  params: Promise<{ token: string }>,
+  searchParams: Promise<{ vt?: string }>
 }) {
   const { token } = await params
+  const { vt } = await searchParams
 
   const recipient = await prisma.transactionRecipient.findUnique({
     where: { linkTokenHash: token },
     include: {
       transaction: {
-        include: {
-          sender: true,
-          documents: true
-        }
+        include: { sender: true, documents: true }
       }
     }
   })
@@ -33,6 +34,20 @@ export default async function ServePage({
     )
   }
 
+  const isValidVerificationToken = vt && vt === recipient.verificationToken
+
+  // Auto-verify if the URL has the correct magic token
+  if (isValidVerificationToken && recipient.status === "PENDING") {
+    await prisma.transactionRecipient.update({
+      where: { id: recipient.id },
+      data: {
+        status: "VERIFIED",
+        verifiedAt: new Date(),
+        verificationMethod: "EMAIL_LINK"
+      }
+    })
+  }
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-xl bg-white p-8 rounded-lg shadow-sm border">
@@ -46,7 +61,6 @@ export default async function ServePage({
           <div className="bg-gray-50 p-4 rounded border">
             <p className="font-bold">{recipient.transaction.sender.name}</p>
             <p className="text-sm text-gray-500">{recipient.transaction.sender.organization || "NIL"}</p>
-            <p className="text-sm text-gray-500">{recipient.transaction.sender.email}</p>
           </div>
           
           <div className="bg-gray-50 p-4 rounded border">
@@ -55,12 +69,30 @@ export default async function ServePage({
           </div>
         </div>
 
-        <ClientActions 
-          token={token} 
-          hasEmail={!!recipient.email} 
-          hasPhone={!!recipient.whatsapp}
-          documentId={recipient.transaction.documents[0]?.id || ""}
-        />
+        {recipient.status === "ACKNOWLEDGED" ? (
+          <div className="bg-green-50 text-green-700 p-4 rounded border border-green-200 text-center">
+            <p className="font-bold">This document has already been acknowledged.</p>
+            <a 
+              href={`/api/documents/${recipient.transaction.documents[0]?.id}`} 
+              target="_blank"
+              className="block w-full mt-4 bg-gray-100 text-gray-800 border border-gray-300 p-3 rounded font-bold hover:bg-gray-200"
+            >
+              View Document Again
+            </a>
+          </div>
+        ) : isValidVerificationToken || recipient.status === "VERIFIED" ? (
+          <DocumentViewer 
+            token={token} 
+            documentId={recipient.transaction.documents[0]?.id || ""} 
+          />
+        ) : (
+          <ClientActions 
+            token={token} 
+            hasEmail={!!recipient.email} 
+            hasPhone={!!recipient.whatsapp}
+            documentId={recipient.transaction.documents[0]?.id || ""} 
+          />
+        )}
 
       </div>
     </div>

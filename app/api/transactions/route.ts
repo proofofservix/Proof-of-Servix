@@ -28,6 +28,7 @@ export async function POST(req: Request) {
 
     const reference = `POS-${new Date().getFullYear()}-${Math.floor(Math.random() * 100000).toString().padStart(5, "0")}`
     const rawToken = randomUUID()
+    const verificationToken = randomUUID()
 
     const transaction = await prisma.transaction.create({
       data: {
@@ -52,13 +53,14 @@ export async function POST(req: Request) {
             email: recipientEmail,
             whatsapp: recipientPhone || null,
             linkTokenHash: rawToken,
+            verificationToken: verificationToken,
             linkExpiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
           }
         }
       }
     })
 
-    const recipientLink = `${process.env.APP_URL || "http://localhost:3000"}/serve/${rawToken}`
+    const recipientLink = `${process.env.APP_URL || "http://localhost:3000"}/serve/${rawToken}?vt=${verificationToken}`
     
     const emailResult = await sendEmail({
       to: recipientEmail,
@@ -80,11 +82,6 @@ export async function POST(req: Request) {
       console.error("Email failed to send:", emailResult.error)
       return NextResponse.json({ error: "Failed to send email" }, { status: 500 })
     }
-
-    console.log("\n=============================================")
-    console.log(`📧 EMAIL SENT TO: ${recipientEmail}`)
-    console.log(`🔗 SECURE LINK: ${recipientLink}`)
-    console.log("=============================================\n")
 
     return NextResponse.json({ 
       message: "Transaction created", 

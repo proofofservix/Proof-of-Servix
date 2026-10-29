@@ -99,15 +99,17 @@ model TransactionRecipient {
   email        String?
   whatsapp     String?
 
-  linkTokenHash String    @unique
-  linkExpiresAt DateTime
+  linkTokenHash      String    @unique
+  verificationToken  String?   @unique
+  linkExpiresAt      DateTime
 
   status RecipientStatus @default(PENDING)
 
-  verifiedAt     DateTime?
-  acknowledgedAt DateTime?
-  refusedAt      DateTime?
-  downloadedAt   DateTime?
+  verifiedAt         DateTime?
+  verificationMethod String?
+  acknowledgedAt     DateTime?
+  refusedAt          DateTime?
+  downloadedAt       DateTime?
   
   accessIp       String?
   accessDevice   String?

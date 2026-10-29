@@ -69,11 +69,29 @@ export default async function Dashboard() {
                     View CSA
                   </a>
                 )}
+                
+                {/* Copy Link Button */}
+                <CopyLinkButton token={tx.recipients[0]?.linkTokenHash || ""} />
               </div>
             </div>
           ))}
         </div>
       )}
     </div>
+  )
+}
+
+function CopyLinkButton({ token }: { token: string }) {
+  return (
+    <button
+      onClick={() => {
+        const link = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/serve/${token}`
+        navigator.clipboard.writeText(link)
+        alert("Link copied! (Recipient will be required to verify via OTP)")
+      }}
+      className="text-sm text-blue-600 hover:underline font-medium mt-1 block"
+    >
+      Copy Link (Requires OTP)
+    </button>
   )
 }
