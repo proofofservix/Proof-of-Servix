@@ -13,6 +13,10 @@ export default async function Dashboard() {
     redirect("/login")
   }
 
+  // Fetch the user to check isAdmin status directly from the DB
+  const user = await prisma.user.findUnique({ where: { id: session.userId } })
+  const isAdmin = user?.isAdmin
+
   const transactions = await prisma.transaction.findMany({
     where: { senderId: session.userId },
     orderBy: { createdAt: "desc" },
@@ -26,12 +30,22 @@ export default async function Dashboard() {
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-gray-500">Welcome, {session.name}</p>
         </div>
-        <Link 
-          href="/dashboard/new" 
-          className="bg-[#4CAF7D] text-white px-4 py-2 rounded font-medium hover:bg-[#3d9c6c]"
-        >
-          New Transaction
-        </Link>
+        <div className="flex gap-3">
+          {isAdmin && (
+            <Link 
+              href="/admin" 
+              className="bg-gray-800 text-white px-4 py-2 rounded font-medium hover:bg-gray-700"
+            >
+              Admin Panel
+            </Link>
+          )}
+          <Link 
+            href="/dashboard/new" 
+            className="bg-[#4CAF7D] text-white px-4 py-2 rounded font-medium hover:bg-[#3d9c6c]"
+          >
+            New Transaction
+          </Link>
+        </div>
       </div>
 
       {transactions.length === 0 ? (

@@ -16,6 +16,7 @@ model User {
   passwordHash    String?
   name            String
   organization    String?
+  isAdmin         Boolean   @default(false)
   
   emailVerifiedAt    DateTime?
   verificationToken  String?   @unique
