@@ -67,7 +67,7 @@ export default function Home() {
           <Link href="/contact" className="hover:text-gray-800">Contact</Link>
           <Link href="/verify" className="hover:text-gray-800">Verify Certificate</Link>
         </div>
-        <p>&copy; {new Date().getFullYear()} ABIMARS INVENTIONS LIMITED. All rights reserved.</p>
+<p>&copy; 2026 ABIMARS INVENTIONS LIMITED. All rights reserved.</p>
       </footer>
     </div>
   )
