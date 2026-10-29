@@ -2,6 +2,7 @@ import { getSession } from "../lib/session"
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { prisma } from "../lib/prisma"
+import CopyLinkButton from "./CopyLinkButton" // <-- Import the new component
 
 export const instant = false
 
@@ -70,7 +71,7 @@ export default async function Dashboard() {
                   </a>
                 )}
                 
-                {/* Copy Link Button */}
+                {/* Use the imported Client Component */}
                 <CopyLinkButton token={tx.recipients[0]?.linkTokenHash || ""} />
               </div>
             </div>
@@ -78,20 +79,5 @@ export default async function Dashboard() {
         </div>
       )}
     </div>
-  )
-}
-
-function CopyLinkButton({ token }: { token: string }) {
-  return (
-    <button
-      onClick={() => {
-        const link = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/serve/${token}`
-        navigator.clipboard.writeText(link)
-        alert("Link copied! (Recipient will be required to verify via OTP)")
-      }}
-      className="text-sm text-blue-600 hover:underline font-medium mt-1 block"
-    >
-      Copy Link (Requires OTP)
-    </button>
   )
 }
