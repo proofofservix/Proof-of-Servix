@@ -1,24 +1,16 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
+@import "tailwindcss";
 
-const inter = Inter({ subsets: ["latin"] });
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #111827;
+}
 
-export const metadata: Metadata = {
-  title: "Proof of Servix",
-  description: "Send It. Prove It.",
-};
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  return (
-    <html lang="en">
-      <body className={`${inter.className} bg-gray-50 text-gray-900 antialiased`}>
-        {children}
-      </body>
-    </html>
-  );
+/* Force inputs to have dark text */
+input, select, textarea {
+  @apply text-gray-900 bg-white;
 }
