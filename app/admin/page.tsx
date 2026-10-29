@@ -1,50 +1,27 @@
-import { getSession } from "../lib/session"
-import { redirect } from "next/navigation"
 import { prisma } from "../lib/prisma"
-import Link from "next/link"
 
 export const instant = false
 
 export default async function AdminDashboard() {
-  const session = await getSession()
-
-  // Fetch user to check if they are an admin
-  const user = session?.userId 
-    ? await prisma.user.findUnique({ where: { id: session.userId } }) 
-    : null
-
-  if (!user || !user.isAdmin) {
-    redirect("/dashboard") // Kick non-admins out
-  }
-
-  // Fetch platform data
   const totalUsers = await prisma.user.count()
-  const totalTransactions = await prisma.transaction.count()
-  
   const successfulTransactions = await prisma.transaction.count({
     where: { status: { in: ["DISPATCHED", "ACKNOWLEDGED"] } }
   })
-
   const acknowledgedTransactions = await prisma.transaction.count({
     where: { status: "ACKNOWLEDGED" }
   })
 
-  // Calculate Revenue (Service Fees + Verification Fees)
   const servicePayments = await prisma.payment.aggregate({
     where: { purpose: "SERVICE", status: "SUCCESSFUL" },
     _sum: { amount: true }
   })
-  
   const verificationPayments = await prisma.payment.aggregate({
     where: { purpose: "VERIFICATION", status: "SUCCESSFUL" },
     _sum: { amount: true }
   })
 
-  const serviceRevenue = (servicePayments._sum.amount || 0) / 100
-  const verificationRevenue = (verificationPayments._sum.amount || 0) / 100
-  const totalRevenue = serviceRevenue + verificationRevenue
+  const totalRevenue = ((servicePayments._sum.amount || 0) + (verificationPayments._sum.amount || 0)) / 100
 
-  // Fetch recent transactions
   const recentTransactions = await prisma.transaction.findMany({
     orderBy: { createdAt: "desc" },
     take: 10,
@@ -53,17 +30,11 @@ export default async function AdminDashboard() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-500">Platform overview for ABIMARS INVENTIONS LIMITED</p>
-        </div>
-        <Link href="/dashboard" className="text-[#4CAF7D] hover:underline font-medium">
-          &larr; Back to User Dashboard
-        </Link>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+        <p className="text-gray-500">Platform overview for ABIMARS INVENTIONS LIMITED</p>
       </div>
 
-      {/* STATS GRID */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <p className="text-sm text-gray-500 font-medium">Total Users</p>
@@ -83,7 +54,6 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      {/* RECENT TRANSACTIONS TABLE */}
       <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
         <div className="p-6 border-b">
           <h2 className="text-lg font-bold">Recent Transactions</h2>

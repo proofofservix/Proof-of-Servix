@@ -13,10 +13,6 @@ export default async function Dashboard() {
     redirect("/login")
   }
 
-  // Fetch the user to check isAdmin status directly from the DB
-  const user = await prisma.user.findUnique({ where: { id: session.userId } })
-  const isAdmin = user?.isAdmin
-
   const transactions = await prisma.transaction.findMany({
     where: { senderId: session.userId },
     orderBy: { createdAt: "desc" },
@@ -28,75 +24,72 @@ export default async function Dashboard() {
       <div className="flex justify-between items-center mb-8">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-gray-500">Welcome, {session.name}</p>
+          <p className="text-gray-500">Welcome back, {session.name}</p>
         </div>
-        <div className="flex gap-3">
-          {isAdmin && (
-            <Link 
-              href="/admin" 
-              className="bg-gray-800 text-white px-4 py-2 rounded font-medium hover:bg-gray-700"
-            >
-              Admin Panel
-            </Link>
-          )}
-          <Link 
-            href="/dashboard/new" 
-            className="bg-[#4CAF7D] text-white px-4 py-2 rounded font-medium hover:bg-[#3d9c6c]"
-          >
-            New Transaction
-          </Link>
-        </div>
+        <Link 
+          href="/dashboard/new" 
+          className="bg-[#4CAF7D] text-white px-5 py-2.5 rounded font-medium hover:bg-[#3d9c6c] shadow-sm"
+        >
+          + New Transaction
+        </Link>
       </div>
 
       {transactions.length === 0 ? (
-        <div className="border rounded-lg p-8 text-center text-gray-500">
-          No transactions yet. Click "New Transaction" to send your first document.
+        <div className="border-2 border-dashed border-gray-200 rounded-lg p-12 text-center text-gray-500 bg-white">
+          <p className="text-lg font-medium text-gray-800 mb-2">No transactions yet</p>
+          <p>Click "New Transaction" to serve your first document.</p>
         </div>
       ) : (
         <div className="space-y-4">
           {transactions.map((tx) => (
-            <div key={tx.id} className="border rounded-lg p-4 flex flex-col gap-3">
-              <div className="flex justify-between items-center">
+            <div key={tx.id} className="bg-white border rounded-lg p-5 flex flex-col gap-4 shadow-sm">
+              <div className="flex justify-between items-start">
                 <div>
-                  <p className="font-bold">{tx.reference}</p>
+                  <p className="font-bold text-lg">{tx.reference}</p>
                   <p className="text-sm text-gray-500">To: {tx.recipients[0]?.name} ({tx.recipients[0]?.email})</p>
                 </div>
                 <div className="text-right flex flex-col items-end">
-                  <span className={`text-xs font-bold px-2 py-1 rounded block mb-2 ${tx.status === "ACKNOWLEDGED" ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"}`}>
-                    {tx.status}
+                  <span className={`text-xs font-bold px-2.5 py-1 rounded block mb-2 ${
+                    tx.status === "ACKNOWLEDGED" ? "bg-green-100 text-green-800" : 
+                    tx.status === "DISPATCHED" ? "bg-blue-100 text-blue-800" : 
+                    "bg-yellow-100 text-yellow-800"
+                  }`}>
+                    {tx.status.replace("_", " ")}
                   </span>
                   
-                  <a 
-                    href={`/api/transactions/${tx.id}/ssr`} 
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-[#4CAF7D] hover:underline font-medium"
-                  >
-                    View SSR
-                  </a>
-
-                  {tx.status === "ACKNOWLEDGED" && (
+                  <div className="flex gap-3 mt-1">
                     <a 
-                      href={`/api/transactions/${tx.id}/csa`} 
+                      href={`/api/transactions/${tx.id}/ssr`} 
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-green-700 hover:underline font-medium mt-1"
+                      className="text-sm text-[#4CAF7D] hover:underline font-medium"
                     >
-                      View CSA
+                      View SSR
                     </a>
-                  )}
+
+                    {tx.status === "ACKNOWLEDGED" && (
+                      <a 
+                        href={`/api/transactions/${tx.id}/csa`} 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-green-700 hover:underline font-medium"
+                      >
+                        View CSA
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {(tx.status === "DISPATCHED" || tx.status === "ACKNOWLEDGED") && (
-                <div className="mt-2 pt-3 border-t">
-                  <p className="text-xs text-gray-500 mb-1">Secure Document Link:</p>
+                <div className="pt-4 border-t">
+                  <p className="text-xs text-gray-500 mb-2 font-medium">Secure Document Link:</p>
                   <div className="flex items-center gap-2">
                     <input 
                       type="text" 
                       readOnly 
                       value={`${process.env.APP_URL || "https://proofofservix.com"}/serve/${tx.recipients[0]?.linkTokenHash}?vt=${tx.recipients[0]?.verificationToken}`}
-                      className="w-full text-xs p-2 bg-gray-50 border rounded text-gray-600"
+                      className="w-full text-xs p-2.5 bg-gray-50 border rounded text-gray-600"
                     />
                     <CopyLinkButton token={tx.recipients[0]?.linkTokenHash || ""} />
                   </div>
