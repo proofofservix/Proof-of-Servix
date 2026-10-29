@@ -12,9 +12,8 @@ export default function Form({ senderId }: { senderId: string }) {
   const [recipientPhone, setRecipientPhone] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [successLink, setSuccessLink] = useState("")
 
-    const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!file) return setError("Please select a file")
     if (!documentTitle) return setError("Please provide a document title")
@@ -32,7 +31,6 @@ export default function Form({ senderId }: { senderId: string }) {
     formData.append("senderId", senderId)
 
     try {
-      // 1. Create the transaction in our DB (Status: PENDING_PAYMENT)
       const res = await fetch("/api/transactions", {
         method: "POST",
         body: formData
@@ -41,7 +39,6 @@ export default function Form({ senderId }: { senderId: string }) {
       if (res.ok) {
         const data = await res.json()
         
-        // 2. Initialize Paystack and get the checkout URL
         const paystackRes = await fetch("/api/paystack/initialize", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -51,7 +48,6 @@ export default function Form({ senderId }: { senderId: string }) {
         const paystackData = await paystackRes.json()
 
         if (paystackData.authorization_url) {
-          // 3. Redirect the user to Paystack to pay
           window.location.href = paystackData.authorization_url
         } else {
           setError(paystackData.error || "Failed to initialize payment")
@@ -66,37 +62,6 @@ export default function Form({ senderId }: { senderId: string }) {
       setError("Network error. Please try again.")
       setLoading(false)
     }
-  }
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(successLink)
-    alert("Link copied to clipboard!")
-  }
-
-  if (successLink) {
-    return (
-      <div className="p-8 max-w-2xl mx-auto text-center">
-        <div className="bg-green-50 text-green-800 p-6 rounded-lg border border-green-200 mb-6">
-          <h2 className="text-2xl font-bold mb-2">Transaction Created Successfully</h2>
-          <p>An email has been sent to {recipientEmail}.</p>
-        </div>
-        
-        <div className="border p-4 rounded bg-gray-50 mb-6">
-          <p className="text-sm text-gray-500 mb-2">Secure Recipient Link:</p>
-          <p className="font-mono text-sm break-all mb-4">{successLink}</p>
-          <button 
-            onClick={copyToClipboard}
-            className="bg-[#4CAF7D] text-white px-4 py-2 rounded font-bold hover:bg-[#3d9c6c]"
-          >
-            Copy Link to Clipboard
-          </button>
-        </div>
-
-        <button onClick={() => router.push("/dashboard")} className="text-[#4CAF7D] hover:underline">
-          Return to Dashboard
-        </button>
-      </div>
-    )
   }
 
   return (
@@ -163,7 +128,7 @@ export default function Form({ senderId }: { senderId: string }) {
           disabled={loading}
           className="w-full bg-[#4CAF7D] text-white p-3 rounded font-bold disabled:opacity-50"
         >
-          {loading ? "Processing..." : "Create Transaction"}
+          {loading ? "Processing..." : "Pay & Create Transaction"}
         </button>
       </form>
     </div>
