@@ -18,11 +18,15 @@ export async function GET(
       }
     })
 
-    if (!transaction || transaction.recipients[0]?.status !== "ACKNOWLEDGED") {
-      return NextResponse.json({ error: "Transaction not acknowledged" }, { status: 404 })
+    if (!transaction) {
+      return NextResponse.json({ error: "Transaction not found" }, { status: 404 })
     }
 
     const recipient = transaction.recipients[0]
+
+    if (!recipient || recipient.status !== "ACKNOWLEDGED") {
+      return NextResponse.json({ error: "Transaction not acknowledged yet" }, { status: 400 })
+    }
 
     const pdfDoc = await PDFDocument.create()
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
