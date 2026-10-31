@@ -1,8 +1,13 @@
 "use client"
-import { useState } from "react"
+import { useState, Suspense } from "react"
+import { useSearchParams } from "next/navigation"
 
-export default function VerifyPage() {
-  const [reference, setReference] = useState("")
+function VerifyForm() {
+  const searchParams = useSearchParams()
+  const initialRef = searchParams.get("ref") || ""
+  
+  const [reference, setReference] = useState(initialRef)
+  const [docType, setDocType] = useState<"SSR" | "CSA" | "BOTH">("SSR")
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState("")
 
@@ -15,7 +20,7 @@ export default function VerifyPage() {
       const res = await fetch("/api/paystack/verify-init", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ reference })
+        body: JSON.stringify({ reference, docType })
       })
 
       const data = await res.json()
@@ -42,32 +47,54 @@ export default function VerifyPage() {
 
         <form onSubmit={handleVerify} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-semibold">Certificate Reference / ID</label>
+            <label className="text-sm font-semibold">Transaction Reference</label>
             <input 
               type="text" 
               placeholder="e.g., POS-2026-ABC12" 
               required
+              defaultValue={initialRef}
               className="w-full p-2 border rounded"
               onChange={e => setReference(e.target.value)} 
             />
           </div>
 
-          <div className="bg-yellow-50 text-yellow-800 p-4 rounded border border-yellow-200 text-sm">
-            <p className="font-bold">Verification Fee: ₦1,000</p>
-            <p>Payment is required to view the verification results.</p>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold">What would you like to verify?</label>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <label className={`p-3 border rounded cursor-pointer text-center text-sm font-medium ${docType === "SSR" ? "border-[#4CAF7D] bg-green-50" : ""}`}>
+                <input type="radio" name="docType" value="SSR" className="hidden" checked={docType === "SSR"} onChange={() => setDocType("SSR")} />
+                SSR Only <br/> ₦1,000
+              </label>
+              <label className={`p-3 border rounded cursor-pointer text-center text-sm font-medium ${docType === "CSA" ? "border-[#4CAF7D] bg-green-50" : ""}`}>
+                <input type="radio" name="docType" value="CSA" className="hidden" checked={docType === "CSA"} onChange={() => setDocType("CSA")} />
+                CSA Only <br/> ₦1,000
+              </label>
+              <label className={`p-3 border rounded cursor-pointer text-center text-sm font-medium ${docType === "BOTH" ? "border-[#F07A35] bg-orange-50 text-[#F07A35]" : ""}`}>
+                <input type="radio" name="docType" value="BOTH" className="hidden" checked={docType === "BOTH"} onChange={() => setDocType("BOTH")} />
+                Both Documents <br/> ₦1,500
+              </label>
+            </div>
           </div>
 
-          {errorMsg && <p className="text-red-500 text-sm text-center">{errorMsg}</p>}
+          {errorMsg && <p className="text-red-500 text-sm text-center bg-red-50 p-3 rounded">{errorMsg}</p>}
 
           <button 
             type="submit" 
             disabled={loading}
             className="w-full bg-[#4CAF7D] text-white p-3 rounded font-bold disabled:opacity-50"
           >
-            {loading ? "Initializing..." : "Pay ₦1,000 & Verify"}
+            {loading ? "Initializing..." : `Pay & Verify`}
           </button>
         </form>
       </div>
     </div>
+  )
+}
+
+export default function VerifyPage() {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <VerifyForm />
+    </Suspense>
   )
 }

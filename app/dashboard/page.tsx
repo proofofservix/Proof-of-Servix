@@ -47,7 +47,6 @@ export default async function Dashboard() {
                 <div>
                   <p className="font-bold text-lg">{tx.reference}</p>
                   
-                  {/* Loop through all recipients */}
                   <div className="text-sm text-gray-500 mt-2">
                     <span className="font-medium">Recipients:</span>
                     <ul className="list-disc pl-5 mt-1 space-y-1">
@@ -104,7 +103,6 @@ export default async function Dashboard() {
                 <div className="pt-4 border-t">
                   <p className="text-xs text-gray-500 mb-2 font-medium">Secure Document Links:</p>
                   
-                  {/* Loop through all recipients to show their unique links */}
                   <div className="space-y-2">
                     {tx.recipients.map((r) => (
                       <div key={r.id} className="flex items-center gap-2">

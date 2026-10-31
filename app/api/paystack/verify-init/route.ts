@@ -4,10 +4,11 @@ import { randomUUID } from "crypto"
 
 export async function POST(req: Request) {
   try {
-    const { reference, docType } = await req.json()
+    const body = await req.json()
+    const { reference, docType } = body
 
     if (!reference || !docType) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 })
+      return NextResponse.json({ error: "Missing fields: reference or docType" }, { status: 400 })
     }
 
     const transaction = await prisma.transaction.findUnique({
@@ -21,7 +22,6 @@ export async function POST(req: Request) {
 
     const hasCSA = transaction.recipients[0]?.status === "ACKNOWLEDGED"
     
-    // Only block if they ask for CSA/BOTH and it doesn't exist
     if ((docType === "CSA" || docType === "BOTH") && !hasCSA) {
       return NextResponse.json({ error: "This document has not been acknowledged yet, so the CSA is not available. You can still verify the SSR." }, { status: 400 })
     }
