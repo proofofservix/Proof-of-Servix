@@ -46,8 +46,27 @@ export default async function Dashboard() {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="font-bold text-lg">{tx.reference}</p>
-                  <p className="text-sm text-gray-500">To: {tx.recipients[0]?.name} ({tx.recipients[0]?.email})</p>
+                  
+                  {/* Loop through all recipients */}
+                  <div className="text-sm text-gray-500 mt-2">
+                    <span className="font-medium">Recipients:</span>
+                    <ul className="list-disc pl-5 mt-1 space-y-1">
+                      {tx.recipients.map((r) => (
+                        <li key={r.id}>
+                          {r.name} ({r.email}) 
+                          <span className={`ml-2 text-xs font-bold ${
+                            r.status === "ACKNOWLEDGED" ? "text-green-600" : 
+                            r.status === "VERIFIED" ? "text-blue-600" : 
+                            "text-yellow-600"
+                          }`}>
+                            [{r.status}]
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
+
                 <div className="text-right flex flex-col items-end">
                   <span className={`text-xs font-bold px-2.5 py-1 rounded block mb-2 ${
                     tx.status === "ACKNOWLEDGED" ? "bg-green-100 text-green-800" : 
@@ -83,15 +102,22 @@ export default async function Dashboard() {
 
               {(tx.status === "DISPATCHED" || tx.status === "ACKNOWLEDGED") && (
                 <div className="pt-4 border-t">
-                  <p className="text-xs text-gray-500 mb-2 font-medium">Secure Document Link:</p>
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="text" 
-                      readOnly 
-                      value={`${process.env.APP_URL || "https://proofofservix.com"}/serve/${tx.recipients[0]?.linkTokenHash}?vt=${tx.recipients[0]?.verificationToken}`}
-                      className="w-full text-xs p-2.5 bg-gray-50 border rounded text-gray-600"
-                    />
-                    <CopyLinkButton token={tx.recipients[0]?.linkTokenHash || ""} />
+                  <p className="text-xs text-gray-500 mb-2 font-medium">Secure Document Links:</p>
+                  
+                  {/* Loop through all recipients to show their unique links */}
+                  <div className="space-y-2">
+                    {tx.recipients.map((r) => (
+                      <div key={r.id} className="flex items-center gap-2">
+                        <span className="text-xs font-semibold w-24 truncate">{r.name}:</span>
+                        <input 
+                          type="text" 
+                          readOnly 
+                          value={`${process.env.APP_URL || "https://proofofservix.com"}/serve/${r.linkTokenHash}?vt=${r.verificationToken}`}
+                          className="w-full text-xs p-2 bg-gray-50 border rounded text-gray-600"
+                        />
+                        <CopyLinkButton token={r.linkTokenHash || ""} />
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}

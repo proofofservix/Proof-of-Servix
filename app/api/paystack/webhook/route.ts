@@ -12,7 +12,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No signature" }, { status: 400 })
     }
 
-    // Verify signature
     const hash = crypto
       .createHmac("sha512", process.env.PAYSTACK_SECRET_KEY!)
       .update(body)
@@ -33,31 +32,32 @@ export async function POST(req: Request) {
       })
 
       if (transaction && transaction.status === "PENDING_PAYMENT") {
-        // 1. Update status to DISPATCHED
+        // 1. Update status
         await prisma.transaction.update({
           where: { id: transaction.id },
           data: { status: "DISPATCHED", paidAt: new Date() }
         })
 
-        // 2. Send the email to the recipient
-        const recipient = transaction.recipients[0]
-        const rawToken = recipient.linkTokenHash // Stored raw for now
-        const recipientLink = `${process.env.APP_URL}/serve/${rawToken}`
-
-        await sendEmail({
-          to: recipient.email!,
-          subject: "You have received a document - Proof of Servix",
-          html: `
-            <div style="font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto;">
-              <h2 style="color: #4CAF7D;">Proof of Servix</h2>
-              <p>Hello ${recipient.name},</p>
-              <p>You have received a document from <strong>${transaction.sender.name}</strong>.</p>
-              <p><strong>Document Title:</strong> ${transaction.documents[0].title}</p>
-              <p>Click the button below to view the document:</p>
-              <a href="${recipientLink}" style="display: inline-block; background-color: #4CAF7D; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;">View Document</a>
-            </div>
-          `,
-        })
+        // 2. Loop through ALL recipients and send an email to each one
+        for (const recipient of transaction.recipients) {
+          const recipientLink = `${process.env.APP_URL || "https://proofofservix.com"}/serve/${recipient.linkTokenHash}?vt=${recipient.verificationToken}`
+          
+          await sendEmail({
+            to: recipient.email!,
+            subject: "You have received a document - Proof of Servix",
+            html: `
+              <div style="font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto;">
+                <h2 style="color: #4CAF7D;">Proof of Servix</h2>
+                <p>Hello ${recipient.name},</p>
+                <p>You have received a document from <strong>${transaction.sender.name}</strong>.</p>
+                <p><strong>Document Title:</strong> ${transaction.documents[0].title}</p>
+                <p>Click the button below to view the document:</p>
+                <a href="${recipientLink}" style="display: inline-block; background-color: #4CAF7D; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;">View Document</a>
+                <p style="color: #666; font-size: 12px; margin-top: 20px;">This link is unique to you. Do not forward it.</p>
+              </div>
+            `,
+          })
+        }
       }
     }
 
