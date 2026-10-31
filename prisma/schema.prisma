@@ -80,6 +80,7 @@ model Document {
   sizeBytes  Int
   storageKey String      @db.Text
   sha256     String
+  isMainDocument Boolean   @default(false) // <-- Add this
 
   createdAt DateTime @default(now())
 }

@@ -3,23 +3,27 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 
 type Recipient = { name: string, organization: string, email: string, phone: string }
+type DocumentFile = { file: File, title: string }
 
 export default function Form({ senderId }: { senderId: string }) {
   const router = useRouter()
-  const [documentTitle, setDocumentTitle] = useState("")
-  const [files, setFiles] = useState<File[]>([])
+  
   const [recipients, setRecipients] = useState<Recipient[]>([{ name: "", organization: "", email: "", phone: "" }])
+  const [documents, setDocuments] = useState<DocumentFile[]>([])
   
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const BASE_FEE = 2500
+  const BASE_FEE = 1500 // ₦1,500 base covers up to 3 files
+  const EXTRA_FILE_FEE = 500 // ₦500 per extra file
+  const FREE_FILES = 3
 
   const handleAddRecipient = () => {
     setRecipients([...recipients, { name: "", organization: "", email: "", phone: "" }])
   }
 
   const handleRemoveRecipient = (index: number) => {
+    if (recipients.length === 1) return
     const newRecipients = [...recipients]
     newRecipients.splice(index, 1)
     setRecipients(newRecipients)
@@ -31,34 +35,54 @@ export default function Form({ senderId }: { senderId: string }) {
     setRecipients(newRecipients)
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files) {
-      setFiles(Array.from(e.target.files))
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (file.size > 10 * 1024 * 1024) {
+      return setError("File must be less than 10MB")
     }
+    setDocuments([...documents, { file, title: "" }])
+    e.target.value = "" // Reset input
   }
 
-  const totalPrice = BASE_FEE * recipients.length
+  const handleRemoveFile = (index: number) => {
+    const newDocs = [...documents]
+    newDocs.splice(index, 1)
+    setDocuments(newDocs)
+  }
+
+  const handleDocumentTitleChange = (index: number, title: string) => {
+    const newDocs = [...documents]
+    newDocs[index].title = title
+    setDocuments(newDocs)
+  }
+
+  // Calculate Total Price
+  const extraFiles = Math.max(0, documents.length - FREE_FILES)
+  const fileFee = extraFiles * EXTRA_FILE_FEE
+  const totalPerRecipient = BASE_FEE + fileFee
+  const totalPrice = totalPerRecipient * recipients.length
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (files.length === 0) return setError("Please upload at least one document")
-    if (!documentTitle) return setError("Please provide a document title")
+    setError("")
+
+    if (documents.length === 0) return setError("Please upload at least one document")
+    if (documents.some(d => !d.title)) return setError("Please provide a title for every uploaded file")
     
-    // Validate all recipients have a name and email
     for (const r of recipients) {
       if (!r.name || !r.email) return setError("Please fill in name and email for all recipients")
     }
 
     setLoading(true)
-    setError("")
 
     const formData = new FormData()
-    formData.append("documentTitle", documentTitle)
     formData.append("senderId", senderId)
     formData.append("recipientsJson", JSON.stringify(recipients))
+    formData.append("documentsJson", JSON.stringify(documents.map(d => ({ title: d.title }))))
     
-    files.forEach(file => {
-      formData.append("files", file) // Append all files
+    documents.forEach(doc => {
+      formData.append("files", doc.file)
     })
 
     try {
@@ -70,11 +94,13 @@ export default function Form({ senderId }: { senderId: string }) {
       if (res.ok) {
         const data = await res.json()
         
-        // Initialize Paystack
         const paystackRes = await fetch("/api/paystack/initialize", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ transactionId: data.transaction.id })
+          body: JSON.stringify({ 
+            transactionIds: data.transactionIds, 
+            totalAmount: totalPrice 
+          })
         })
 
         const paystackData = await paystackRes.json()
@@ -103,37 +129,59 @@ export default function Form({ senderId }: { senderId: string }) {
       <form onSubmit={handleSubmit} className="space-y-8">
         {error && <p className="text-red-500 bg-red-50 p-4 rounded border border-red-200">{error}</p>}
 
-        {/* DOCUMENT DETAILS */}
+        {/* DOCUMENTS SECTION */}
         <div className="bg-white p-6 rounded-lg border shadow-sm space-y-4">
-          <h2 className="font-bold text-lg border-b pb-2">1. Document Details</h2>
-          <div>
-            <label className="text-sm font-semibold block mb-1">Document Title</label>
-            <input 
-              type="text" 
-              placeholder="e.g., Letter of Demand, Notice of Hearing" 
-              required
-              className="w-full p-3 border rounded"
-              onChange={e => setDocumentTitle(e.target.value)} 
-            />
+          <div className="flex justify-between items-center border-b pb-2">
+            <h2 className="font-bold text-lg">1. Documents (Base fee covers first 3)</h2>
           </div>
-          <div>
-            <label className="text-sm font-semibold block mb-1">Upload Document(s)</label>
+
+          <div className="space-y-4">
+            {documents.map((doc, index) => (
+              <div key={index} className="flex flex-col md:flex-row gap-3 items-start md:items-center bg-gray-50 p-3 rounded border">
+                <div className="flex-1 w-full">
+                  <input 
+                    type="text" 
+                    placeholder="Enter document title (e.g., Motion, Exhibit A)" 
+                    required
+                    className="w-full p-2 border rounded text-sm"
+                    value={doc.title}
+                    onChange={e => handleDocumentTitleChange(index, e.target.value)}
+                  />
+                  <p className="text-xs text-gray-500 mt-1 truncate">File: {doc.file.name} ({Math.round(doc.file.size / 1024 / 1024 * 10) / 10} MB)</p>
+                </div>
+                <button 
+                  type="button" 
+                  onClick={() => handleRemoveFile(index)}
+                  className="text-red-500 text-sm hover:underline"
+                >
+                  Remove
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer relative">
             <input 
               type="file" 
-              multiple
-              required
               accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-3 file:px-6 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-[#4CAF7D] file:text-white hover:file:bg-[#3d9c6c]"
-              onChange={handleFileChange} 
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              onChange={handleFileUpload} 
             />
-            <p className="text-xs text-gray-500 mt-2">You can select multiple files (e.g., Main Document + Exhibits). Max 10MB per file.</p>
+            <p className="font-semibold text-[#4CAF7D]">+ Click to add a file</p>
+            <p className="text-xs text-gray-500 mt-1">Max 10MB per file. Add the main document and any supporting files.</p>
           </div>
+
+          {documents.length > 3 && (
+            <p className="text-sm text-[#F07A35] font-semibold bg-orange-50 p-2 rounded">
+              Note: Adding more than 3 files costs ₦{EXTRA_FILE_FEE} per extra file.
+            </p>
+          )}
         </div>
 
-        {/* RECIPIENTS DETAILS */}
+        {/* RECIPIENTS SECTION */}
         <div className="bg-white p-6 rounded-lg border shadow-sm space-y-6">
           <div className="flex justify-between items-center border-b pb-2">
-            <h2 className="font-bold text-lg">2. Recipients</h2>
+            <h2 className="font-bold text-lg">2. Recipients (₦{BASE_FEE} each)</h2>
             <button type="button" onClick={handleAddRecipient} className="text-sm font-bold text-[#4CAF7D] hover:underline">
               + Add Another Recipient
             </button>
@@ -164,13 +212,16 @@ export default function Form({ senderId }: { senderId: string }) {
         {/* PRICE PREVIEW & SUBMIT */}
         <div className="bg-gray-800 text-white p-6 rounded-lg flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
-            <p className="text-gray-400 text-sm">Total Fee ({recipients.length} {recipients.length === 1 ? 'Recipient' : 'Recipients'})</p>
+            <p className="text-gray-400 text-sm mb-1">Breakdown:</p>
+            <ul className="text-xs text-gray-400 mb-2 space-y-1">
+              <li>{recipients.length} Recipient(s) × ₦{BASE_FEE} = ₦{(recipients.length * BASE_FEE).toLocaleString()}</li>
+              {extraFiles > 0 && <li>{extraFiles} Extra File(s) × ₦{EXTRA_FILE_FEE} = ₦{fileFee.toLocaleString()}</li>}
+            </ul>
             <p className="text-3xl font-bold text-[#4CAF7D]">₦{totalPrice.toLocaleString()}</p>
-            <p className="text-xs text-gray-400 mt-1">₦{BASE_FEE.toLocaleString()} per recipient</p>
           </div>
           <button 
             type="submit" 
-            disabled={loading}
+            disabled={loading || documents.length === 0}
             className="w-full md:w-auto bg-[#F07A35] text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-[#d96b2c] disabled:opacity-50 transition-colors"
           >
             {loading ? "Processing..." : `Pay ₦${totalPrice.toLocaleString()} & Send`}

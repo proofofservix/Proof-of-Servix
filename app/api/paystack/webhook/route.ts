@@ -24,22 +24,28 @@ export async function POST(req: Request) {
     const event = JSON.parse(body)
 
     if (event.event === "charge.success") {
-      const reference = event.data.reference
+      const metadata = event.data.metadata
+      const transactionIds = metadata.transactionIds
 
-      const transaction = await prisma.transaction.findUnique({
-        where: { reference },
-        include: { recipients: true, documents: true, sender: true }
-      })
+      if (!transactionIds || !Array.isArray(transactionIds)) {
+        return NextResponse.json({ error: "No transaction IDs in metadata" }, { status: 400 })
+      }
 
-      if (transaction && transaction.status === "PENDING_PAYMENT") {
-        // 1. Update status
-        await prisma.transaction.update({
-          where: { id: transaction.id },
-          data: { status: "DISPATCHED", paidAt: new Date() }
+      // Update all transactions in the batch
+      for (const txId of transactionIds) {
+        const transaction = await prisma.transaction.findUnique({
+          where: { id: txId },
+          include: { recipients: true, documents: true, sender: true }
         })
 
-        // 2. Loop through ALL recipients and send an email to each one
-        for (const recipient of transaction.recipients) {
+        if (transaction && transaction.status === "PENDING_PAYMENT") {
+          await prisma.transaction.update({
+            where: { id: transaction.id },
+            data: { status: "DISPATCHED", paidAt: new Date() }
+          })
+
+          // Send email to the single recipient attached to this transaction
+          const recipient = transaction.recipients[0]
           const recipientLink = `${process.env.APP_URL || "https://proofofservix.com"}/serve/${recipient.linkTokenHash}?vt=${recipient.verificationToken}`
           
           await sendEmail({

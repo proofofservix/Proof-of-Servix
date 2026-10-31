@@ -68,8 +68,10 @@ export async function GET(
     // --- DOCUMENT DETAILS ---
     page.drawText("Document Details", { x: 50, y, size: 16, font: boldFont })
     y -= 25
+    
+    // Loop through all documents
     transaction.documents.forEach(doc => {
-      page.drawText(`Title: ${doc.title}`, { x: 50, y, size: 12, font: boldFont })
+      page.drawText(`${doc.isMainDocument ? "Main Document" : "Supporting File"}: ${doc.title}`, { x: 50, y, size: 12, font: boldFont })
       y -= 15
       page.drawText(`Original File: ${doc.filename}`, { x: 50, y, size: 10, font, color: rgb(0.4, 0.4, 0.4) })
       y -= 15

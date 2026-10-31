@@ -18,15 +18,11 @@ export async function GET(
       }
     })
 
-    if (!transaction) {
-      return NextResponse.json({ error: "Transaction not found" }, { status: 404 })
+    if (!transaction || transaction.recipients[0]?.status !== "ACKNOWLEDGED") {
+      return NextResponse.json({ error: "Transaction not acknowledged" }, { status: 404 })
     }
 
     const recipient = transaction.recipients[0]
-
-    if (!recipient || recipient.status !== "ACKNOWLEDGED") {
-      return NextResponse.json({ error: "Transaction not acknowledged yet" }, { status: 400 })
-    }
 
     const pdfDoc = await PDFDocument.create()
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
@@ -99,10 +95,11 @@ export async function GET(
     // --- DOCUMENT DETAILS ---
     page.drawText("Document Details", { x: 50, y, size: 14, font: boldFont })
     y -= 25
+    
     transaction.documents.forEach(doc => {
-      page.drawText(`Title: ${doc.title}`, { x: 50, y, size: 12, font: boldFont })
+      page.drawText(`${doc.isMainDocument ? "Main Document" : "Supporting File"}: ${doc.title}`, { x: 50, y, size: 11, font: boldFont })
       y -= 15
-      page.drawText(`Original File: ${doc.filename}`, { x: 50, y, size: 10, font, color: rgb(0.4, 0.4, 0.4) })
+      page.drawText(`Original File: ${doc.filename}`, { x: 50, y, size: 9, font, color: rgb(0.4, 0.4, 0.4) })
       y -= 15
       page.drawText(`SHA-256 Hash: ${doc.sha256}`, { x: 50, y, size: 8, font, color: rgb(0.6, 0.6, 0.6) })
       y -= 25
