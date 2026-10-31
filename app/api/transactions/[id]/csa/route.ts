@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/app/lib/prisma"
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib"
+import QRCode from "qrcode"
 
 export async function GET(
   req: Request,
@@ -42,6 +43,13 @@ export async function GET(
       borderColor: rgb(0.3, 0.68, 0.49),
       borderWidth: 2,
     })
+
+    // --- QR CODE ---
+    const verifyUrl = `${process.env.APP_URL || "https://proofofservix.com"}/verify?ref=${transaction.reference}`
+    const qrDataUrl = await QRCode.toDataURL(verifyUrl)
+    const qrImage = await pdfDoc.embedPng(qrDataUrl)
+    const qrSize = 80
+    page.drawImage(qrImage, { x: width - 50 - qrSize, y: height - 70 - qrSize, width: qrSize, height: qrSize })
 
     // --- HEADER ---
     page.drawText("CERTIFICATE OF SERVICE", { x: 50, y, size: 22, font: boldFont, color: rgb(0.3, 0.68, 0.49) })
@@ -106,6 +114,7 @@ export async function GET(
     })
 
     // --- FOOTER ---
+    page.drawText("Scan the QR code to verify this certificate online.", { x: 50, y: 70, size: 9, font, color: rgb(0.5, 0.5, 0.5) })
     page.drawText("This certificate confirms that the recipient verified their access and expressly acknowledged receipt of the document. It does not constitute agreement with the document's contents.", {
       x: 50, y: 45, size: 9, font, color: rgb(0.5, 0.5, 0.5), maxWidth: width - 100
     })

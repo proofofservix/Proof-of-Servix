@@ -19,17 +19,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Transaction not found" }, { status: 404 })
     }
 
-    // Validate if the requested document type exists
     const hasCSA = transaction.recipients[0]?.status === "ACKNOWLEDGED"
     
+    // Only block if they ask for CSA/BOTH and it doesn't exist
     if ((docType === "CSA" || docType === "BOTH") && !hasCSA) {
-      return NextResponse.json({ error: "This document has not been acknowledged yet, so the CSA is not available." }, { status: 400 })
+      return NextResponse.json({ error: "This document has not been acknowledged yet, so the CSA is not available. You can still verify the SSR." }, { status: 400 })
     }
 
-    // Calculate Amount
     let amount = 0
-    if (docType === "SSR" || docType === "CSA") amount = 100000 // ₦1,000
-    if (docType === "BOTH") amount = 150000 // ₦1,500
+    if (docType === "SSR" || docType === "CSA") amount = 100000
+    if (docType === "BOTH") amount = 150000
 
     const gatewayRef = `VERIFY-${randomUUID()}`
 

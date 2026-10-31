@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/app/lib/prisma"
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib"
+import QRCode from "qrcode"
 
 export async function GET(
   req: Request,
@@ -31,8 +32,15 @@ export async function GET(
     
     let y = height - 50
 
+    // --- QR CODE ---
+    const verifyUrl = `${process.env.APP_URL || "https://proofofservix.com"}/verify?ref=${transaction.reference}`
+    const qrDataUrl = await QRCode.toDataURL(verifyUrl)
+    const qrImage = await pdfDoc.embedPng(qrDataUrl)
+    const qrSize = 80
+    page.drawImage(qrImage, { x: width - 50 - qrSize, y: height - 50 - qrSize, width: qrSize, height: qrSize })
+
     // --- HEADER ---
-    page.drawText("SERVICE SUBMISSION RECEIPT", { x: 50, y, size: 20, font: boldFont, color: rgb(0.3, 0.68, 0.49) })
+    page.drawText("SERVICE SUBMISSION RECEIPT", { x: 50, y, size: 18, font: boldFont, color: rgb(0.3, 0.68, 0.49) })
     y -= 20
     page.drawText("Obtained from proofofservix.com", { x: 50, y, size: 12, font, color: rgb(0.4, 0.4, 0.4) })
     y -= 40
@@ -79,6 +87,7 @@ export async function GET(
     })
 
     // --- FOOTER ---
+    page.drawText("Scan the QR code to verify this document online.", { x: 50, y: 70, size: 9, font, color: rgb(0.5, 0.5, 0.5) })
     page.drawText("This receipt proves submission and dispatch initiation. It does not constitute proof of acknowledgement or legal service.", {
       x: 50, y: 50, size: 9, font, color: rgb(0.5, 0.5, 0.5), maxWidth: width - 100
     })
