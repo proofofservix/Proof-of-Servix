@@ -113,9 +113,9 @@ export async function GET(
       y -= 25
     })
 
-       // --- FOOTER ---
+    // --- FOOTER ---
     page.drawText("Scan the QR code above or visit proofofservix.com/verify to verify this certificate online.", { x: 50, y: 90, size: 9, font, color: rgb(0.3, 0.3, 0.3) })
-    page.drawText("Verification Fee: ₦1,000 per document.", { x: 50, y: 75, size: 9, font, color: rgb(0.5, 0.5, 0.5) })
+    page.drawText("Verification Fee: NGN 1,000 per document.", { x: 50, y: 75, size: 9, font, color: rgb(0.5, 0.5, 0.5) })
     page.drawText("This certificate confirms that the recipient verified their access and expressly acknowledged receipt of the document. It does not constitute agreement with the document's contents.", {
       x: 50, y: 45, size: 9, font, color: rgb(0.5, 0.5, 0.5), maxWidth: width - 100
     })

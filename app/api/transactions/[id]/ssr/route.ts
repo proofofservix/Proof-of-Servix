@@ -88,7 +88,7 @@ export async function GET(
 
     // --- FOOTER ---
     page.drawText("Scan the QR code above or visit proofofservix.com/verify to verify this document online.", { x: 50, y: 90, size: 9, font, color: rgb(0.3, 0.3, 0.3) })
-    page.drawText("Verification Fee: ₦1,000 per document.", { x: 50, y: 75, size: 9, font, color: rgb(0.5, 0.5, 0.5) })
+    page.drawText("Verification Fee: NGN 1,000 per document.", { x: 50, y: 75, size: 9, font, color: rgb(0.5, 0.5, 0.5) })
     page.drawText("This receipt proves submission and dispatch initiation. It does not constitute proof of acknowledgement or legal service.", {
       x: 50, y: 50, size: 9, font, color: rgb(0.5, 0.5, 0.5), maxWidth: width - 100
     })
