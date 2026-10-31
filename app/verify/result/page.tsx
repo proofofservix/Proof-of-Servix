@@ -6,6 +6,7 @@ function ResultContent() {
   const searchParams = useSearchParams()
   const reference = searchParams.get("ref")
   const gatewayRef = searchParams.get("gatewayRef")
+  const docType = searchParams.get("docType") || "BOTH"
   
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading")
   const [certificateData, setCertificateData] = useState<any>(null)
@@ -72,16 +73,34 @@ function ResultContent() {
 
         <div className="space-y-6">
           <div className="bg-green-50 text-green-700 p-4 rounded border border-green-200 text-center">
-            <h2 className="text-xl font-bold mb-1">Certificate is Valid</h2>
-            <p className="text-sm">This certificate was issued by Proof of Servix.</p>
+            <h2 className="text-xl font-bold mb-1">Payment Successful</h2>
+            <p className="text-sm">You can now download the verified document(s).</p>
           </div>
 
-          <div className="bg-gray-50 p-4 rounded border space-y-2 text-sm">
+          <div className="bg-gray-50 p-4 rounded border space-y-4">
             <p><strong>Transaction Reference:</strong> {certificateData.transactionReference}</p>
-            <p><strong>Date of Acknowledgement:</strong> {new Date(certificateData.acknowledgedAt).toLocaleString()}</p>
-            <p><strong>Recipient:</strong> {certificateData.recipientName}</p>
-            <p><strong>Document Title:</strong> {certificateData.documentTitle}</p>
-            <p><strong>Document Hash:</strong> <span className="font-mono text-xs break-all">{certificateData.documentHash}</span></p>
+            
+            <div className="flex flex-col gap-3">
+              {(docType === "SSR" || docType === "BOTH") && (
+                <a 
+                  href={`/api/transactions/${certificateData.transactionId}/ssr`}
+                  target="_blank"
+                  className="block w-full text-center bg-gray-800 text-white p-3 rounded font-bold hover:bg-gray-700"
+                >
+                  Download Service Submission Receipt (SSR)
+                </a>
+              )}
+
+              {(docType === "CSA" || docType === "BOTH") && (
+                <a 
+                  href={`/api/transactions/${certificateData.transactionId}/csa`}
+                  target="_blank"
+                  className="block w-full text-center bg-[#4CAF7D] text-white p-3 rounded font-bold hover:bg-[#3d9c6c]"
+                >
+                  Download Certificate of Service (CSA)
+                </a>
+              )}
+            </div>
           </div>
         </div>
       </div>

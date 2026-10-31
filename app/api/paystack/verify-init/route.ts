@@ -4,10 +4,10 @@ import { randomUUID } from "crypto"
 
 export async function POST(req: Request) {
   try {
-    const { reference } = await req.json()
+    const { reference, docType } = await req.json()
 
-    if (!reference) {
-      return NextResponse.json({ error: "Reference required" }, { status: 400 })
+    if (!reference || !docType) {
+      return NextResponse.json({ error: "Missing fields" }, { status: 400 })
     }
 
     const transaction = await prisma.transaction.findUnique({
@@ -15,9 +15,21 @@ export async function POST(req: Request) {
       include: { recipients: true }
     })
 
-    if (!transaction || transaction.recipients[0]?.status !== "ACKNOWLEDGED") {
-      return NextResponse.json({ error: "Valid acknowledged certificate not found" }, { status: 404 })
+    if (!transaction) {
+      return NextResponse.json({ error: "Transaction not found" }, { status: 404 })
     }
+
+    // Validate if the requested document type exists
+    const hasCSA = transaction.recipients[0]?.status === "ACKNOWLEDGED"
+    
+    if ((docType === "CSA" || docType === "BOTH") && !hasCSA) {
+      return NextResponse.json({ error: "This document has not been acknowledged yet, so the CSA is not available." }, { status: 400 })
+    }
+
+    // Calculate Amount
+    let amount = 0
+    if (docType === "SSR" || docType === "CSA") amount = 100000 // ₦1,000
+    if (docType === "BOTH") amount = 150000 // ₦1,500
 
     const gatewayRef = `VERIFY-${randomUUID()}`
 
@@ -26,7 +38,7 @@ export async function POST(req: Request) {
         purpose: "VERIFICATION",
         gateway: "paystack",
         gatewayRef: gatewayRef,
-        amount: 100000, // ₦1,000 in kobo
+        amount: amount,
         status: "PENDING",
         reference: reference.trim(),
       }
@@ -40,9 +52,9 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         email: "verifier@proofofservix.com", 
-        amount: 100000,
+        amount: amount,
         reference: gatewayRef,
-        callback_url: `${process.env.APP_URL}/verify/result?ref=${reference.trim()}&gatewayRef=${gatewayRef}`,
+        callback_url: `${process.env.APP_URL}/verify/result?ref=${reference.trim()}&gatewayRef=${gatewayRef}&docType=${docType}`,
       }),
     })
 

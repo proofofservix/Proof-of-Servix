@@ -30,21 +30,17 @@ export async function POST(req: Request) {
     }
 
     const transaction = await prisma.transaction.findUnique({
-      where: { reference },
-      include: { recipients: true, documents: true }
+      where: { reference }
     })
 
-    if (!transaction || transaction.recipients[0]?.status !== "ACKNOWLEDGED") {
-      return NextResponse.json({ error: "Certificate invalid" }, { status: 404 })
+    if (!transaction) {
+      return NextResponse.json({ error: "Transaction not found" }, { status: 404 })
     }
 
     return NextResponse.json({
       valid: true,
       transactionReference: transaction.reference,
-      acknowledgedAt: transaction.recipients[0].acknowledgedAt,
-      recipientName: transaction.recipients[0].name,
-      documentTitle: transaction.documents[0]?.title,
-      documentHash: transaction.documents[0]?.sha256
+      transactionId: transaction.id // Added so the frontend can link to the PDFs
     })
 
   } catch (error) {
