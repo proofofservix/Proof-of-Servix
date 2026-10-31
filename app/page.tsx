@@ -9,8 +9,7 @@ export default function Home() {
       <header className="w-full border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            {/* REPLACE /logo.png WITH YOUR ACTUAL LOGO FILENAME */}
-            <img src="/logo.png" alt="Proof of Servix" className="h-10 w-auto" />
+            <img src="/pos_logo.png" alt="Proof of Servix" className="h-10 w-auto" />
             <span className="text-2xl font-bold text-[#4CAF7D]">Proof of Servix</span>
           </div>
           <div className="flex items-center gap-6">
@@ -44,7 +43,7 @@ export default function Home() {
         </div>
       </main>
 
-      {/* WHO IS IT FOR (Replaces the "Lawyers Only" section) */}
+      {/* WHO IS IT FOR */}
       <section className="py-20 px-6 bg-white">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-12">Built for Anyone Who Needs Proof</h2>
