@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/app/lib/prisma"
+import { getDownloadUrl } from "@/app/lib/r2"
 
 export async function GET(
   req: Request,
@@ -7,33 +8,16 @@ export async function GET(
 ) {
   try {
     const { id } = await params
-
-    const document = await prisma.document.findUnique({
-      where: { id }
-    })
+    const document = await prisma.document.findUnique({ where: { id } })
 
     if (!document || !document.storageKey) {
       return NextResponse.json({ error: "Document not found" }, { status: 404 })
     }
 
-    // The storageKey is a Base64 string like: data:application/pdf;base64,JVBER...
-    // We need to extract the raw Base64 data
-    const base64Data = document.storageKey.split(",")[1]
-    
-    if (!base64Data) {
-      return NextResponse.json({ error: "Invalid document format" }, { status: 500 })
-    }
-
-    const buffer = Buffer.from(base64Data, "base64")
-
-    return new NextResponse(buffer, {
-      headers: {
-        "Content-Type": document.mimeType,
-        "Content-Disposition": `inline; filename="${document.filename}"`,
-      },
-    })
+    const downloadUrl = await getDownloadUrl(document.storageKey)
+    return NextResponse.redirect(downloadUrl)
   } catch (error) {
-    console.error("Document fetch error:", error)
-    return NextResponse.json({ error: "Server error" }, { status: 500 })
+    console.error("Preview error:", error)
+    return NextResponse.json({ error: "Failed to load document" }, { status: 500 })
   }
 }

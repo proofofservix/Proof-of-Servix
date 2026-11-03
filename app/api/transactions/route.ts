@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/app/lib/prisma"
 import { createHash, randomUUID } from "crypto"
+import { uploadToR2 } from "@/app/lib/r2"
 
 export async function POST(req: Request) {
   try {
@@ -17,27 +18,27 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 })
     }
 
-    // Process files once (hash and base64)
     const documentData = await Promise.all(files.map(async (file, index) => {
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
       const sha256 = createHash("sha256").update(buffer).digest("hex")
-      const base64Data = buffer.toString("base64")
+      
+      const r2Key = `documents/${randomUUID()}-${file.name}`
+      await uploadToR2(r2Key, buffer, file.type)
+
       return {
         title: documentMeta[index].title,
         filename: file.name,
         mimeType: file.type,
         sizeBytes: file.size,
-        storageKey: `data:${file.type};base64,${base64Data}`,
+        storageKey: r2Key,
         sha256,
-        isMainDocument: index === 0 // First file is the main document
+        isMainDocument: index === 0
       }
     }))
 
     const transactionIds: string[] = []
-    const batchReference = `BATCH-${Date.now()}` // Group identifier
 
-    // Loop through each recipient and create a separate transaction
     for (const recipient of recipients) {
       const reference = `POS-${new Date().getFullYear()}-${Math.floor(Math.random() * 100000).toString().padStart(5, "0")}`
       const rawToken = randomUUID()
@@ -47,12 +48,9 @@ export async function POST(req: Request) {
         data: {
           reference,
           senderId,
-          feeAmount: 150000, // We'll update this properly in the Paystack step
+          feeAmount: 150000,
           status: "PENDING_PAYMENT",
-          // Note: We are not using batchReference yet, but we could add it to the schema later to group them
-          documents: {
-            create: documentData // All files are attached to every transaction
-          },
+          documents: { create: documentData },
           recipients: {
             create: {
               name: recipient.name,
@@ -66,15 +64,10 @@ export async function POST(req: Request) {
           }
         }
       })
-
       transactionIds.push(transaction.id)
     }
 
-    return NextResponse.json({ 
-      message: "Transactions created", 
-      transactionIds 
-    }, { status: 201 })
-
+    return NextResponse.json({ message: "Transactions created", transactionIds }, { status: 201 })
   } catch (error) {
     console.error("Transaction error:", error)
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 })
