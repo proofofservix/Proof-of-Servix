@@ -17,6 +17,9 @@ export const metadata: Metadata = {
     "Court defensible proof of delivery"
   ],
   authors: [{ name: "ABIMARS INVENTIONS LIMITED" }],
+  icons: {
+    icon: "/icon.png",
+  },
   openGraph: {
     title: "Proof of Servix | Send It. Prove It.",
     description: "Generate court-defensible Service Submission Receipts and Certificates of Acknowledgement for documents served electronically.",
