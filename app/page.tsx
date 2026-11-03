@@ -15,6 +15,14 @@ export default function Home() {
             <span className="text-2xl font-bold text-[#4CAF7D]">Proof of Servix</span>
           </Link>
 
+          {/* Top Navigation Links */}
+          <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
+            <Link href="/verify" className="hover:text-[#4CAF7D] transition-colors">Verify</Link>
+            <Link href="/contact" className="hover:text-[#4CAF7D] transition-colors">Contact Us</Link>
+            <Link href="/pricing" className="hover:text-[#4CAF7D] transition-colors">Pricing</Link>
+          </div>
+
+          {/* Auth Buttons */}
           <div className="flex items-center gap-6">
             <Link href="/login" className="text-sm font-semibold text-gray-600 hover:text-[#4CAF7D]">Log In</Link>
             <Link href="/register" className="text-sm font-bold bg-[#4CAF7D] text-white px-5 py-2.5 rounded-lg hover:bg-[#3d9c6c] transition-colors">
@@ -34,11 +42,11 @@ export default function Home() {
           <span className="text-[#4CAF7D]">Defend It.</span>
         </h1>
         <p className="text-xl text-gray-600 max-w-2xl mb-10 leading-relaxed">
-          Stop relying on screenshots or read receipts. Generate legally defensible Service Submission Receipts (SSR) and Certificates of Acknowledgement (CSA) for documents served via Email or WhatsApp. Built for businesses, organisations, and legal practitioners.
+          The secure platform for electronic document service. Easily serve documents and obtain your proof of service with just a few clicks. Built for businesses, organisations, and legal practitioners.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
           <Link href="/register" className="bg-[#4CAF7D] text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-[#3d9c6c] shadow-lg shadow-green-100 transition-all">
-            Start Serving Documents
+            Upload Your Document
           </Link>
           <Link href="/verify" className="bg-white text-gray-800 border-2 border-gray-200 px-8 py-4 rounded-lg font-bold text-lg hover:border-[#F07A35] hover:text-[#F07A35] transition-all">
             Verify a Certificate
@@ -71,15 +79,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* THE PROBLEM SECTION */}
+      {/* THE PROBLEM SECTION (Replaced with Security Focus) */}
       <section className="py-20 px-6 bg-gray-50 border-y border-gray-100">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-6">The End of "I Never Received It"</h2>
+          <h2 className="text-3xl font-bold mb-6">A Chain of Custody You Can Prove</h2>
           <p className="text-lg text-gray-600 leading-relaxed mb-8">
-            Sending documents via email or WhatsApp is fast, but proving it in a dispute is a nightmare. The other party claims they never got the message, the WhatsApp "read" receipt isn't enough, and you have no way to prove the identity of the person who opened the file.
+            Every action is logged with a tamper-evident timestamp and device signature, tracking the journey of each document from upload by the sender to download by the recipient. Files are retained for up to 90 days and automatically purged thereafter, while the cryptographic trail of evidence is preserved permanently.
           </p>
           <p className="text-lg font-semibold text-[#4CAF7D]">
-            Proof of Servix solves this by providing an independent, auditable timeline of delivery.
+            Secure by design. Verifiable by default.
           </p>
         </div>
       </section>
@@ -99,34 +107,15 @@ export default function Home() {
             <div className="bg-gray-50 p-8 rounded-xl shadow-sm border border-gray-100 text-center relative">
               <div className="w-12 h-12 bg-[#F07A35] text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6">2</div>
               <h3 className="font-bold text-xl mb-3">Recipient Verifies</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">The recipient clicks your secure link. They verify their identity via Email OTP to view the document.</p>
+              <p className="text-gray-600 text-sm leading-relaxed">The recipient clicks your secure link. They verify their identity via Email or SMS to view the document.</p>
             </div>
 
             <div className="bg-gray-50 p-8 rounded-xl shadow-sm border border-gray-100 text-center relative">
               <div className="w-12 h-12 bg-gray-800 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6">3</div>
               <h3 className="font-bold text-xl mb-3">Download Your Proof</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">Download your cryptographically hashed SSR and the CSA with the recipient's timestamp and IP logs.</p>
+              <p className="text-gray-600 text-sm leading-relaxed">Download your cryptographically hashed proof of service with the recipient's timestamp and evidence logs.</p>
             </div>
 
-          </div>
-        </div>
-      </section>
-
-      {/* TRUST / AUTHORITY */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-8">Legal-Grade Security for Everyone</h2>
-          <div className="bg-green-50 rounded-2xl p-8 border border-green-100">
-            <p className="text-lg text-gray-700 leading-relaxed mb-6">
-              "We built Proof of Servix to meet the strict evidentiary standards of the Nigerian legal system. That means whether you are a law firm serving a court process or a business sending a final demand notice, every document is secured with SHA-256 cryptographic hashing and detailed access logs."
-            </p>
-            <div className="flex flex-col items-center justify-center">
-              <div className="w-16 h-16 bg-[#4CAF7D] rounded-full flex items-center justify-center text-white font-bold text-xl mb-3">
-                PA
-              </div>
-              <p className="font-bold text-gray-900">Barr. Precious Abisam</p>
-              <p className="text-sm text-gray-500">Co-Founder & CEO (Notary Public)</p>
-            </div>
           </div>
         </div>
       </section>
@@ -139,9 +128,9 @@ export default function Home() {
             <p className="text-sm text-gray-500 mt-2">Send It. Prove It.</p>
           </div>
           <div className="flex gap-6 text-sm text-gray-500">
-            <Link href="/features" className="hover:text-[#4CAF7D]">Features</Link>
             <Link href="/pricing" className="hover:text-[#4CAF7D]">Pricing</Link>
             <Link href="/verify" className="hover:text-[#4CAF7D]">Verify</Link>
+            <Link href="/contact" className="hover:text-[#4CAF7D]">Contact Us</Link>
             <Link href="/terms" className="hover:text-[#4CAF7D]">Terms</Link>
             <Link href="/privacy" className="hover:text-[#4CAF7D]">Privacy</Link>
           </div>
