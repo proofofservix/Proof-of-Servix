@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/app/lib/prisma"
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib"
 import QRCode from "qrcode"
+import { formatInTimeZone } from 'date-fns-tz'
 
 export async function GET(
   req: Request,
@@ -64,9 +65,9 @@ export async function GET(
     y -= 25
     page.drawText(`Reference: ${transaction.reference}`, { x: 50, y, size: 12, font })
     y -= 15
-    page.drawText(`Date of Dispatch: ${transaction.createdAt.toISOString()}`, { x: 50, y, size: 12, font })
+    page.drawText(`Date of Dispatch: ${formatInTimeZone(transaction.createdAt, 'Africa/Lagos', 'yyyy-MM-dd HH:mm:ss zzz')}`, { x: 50, y, size: 12, font })
     y -= 15
-    page.drawText(`Date of Acknowledgement: ${recipient.acknowledgedAt?.toISOString()}`, { x: 50, y, size: 12, font })
+    page.drawText(`Date of Acknowledgement: ${recipient.acknowledgedAt ? formatInTimeZone(recipient.acknowledgedAt, 'Africa/Lagos', 'yyyy-MM-dd HH:mm:ss zzz') : 'N/A'}`, { x: 50, y, size: 12, font })
     y -= 40
 
     // --- SENDER DETAILS ---
