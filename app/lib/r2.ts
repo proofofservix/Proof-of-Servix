@@ -19,12 +19,14 @@ export async function uploadToR2(key: string, body: Buffer, contentType: string)
   }))
 }
 
-export async function getDownloadUrl(key: string) {
+export async function getPreviewUrl(key: string) {
   const command = new GetObjectCommand({
     Bucket: process.env.R2_BUCKET_NAME!,
     Key: key,
+    ResponseContentDisposition: "inline",
+    ResponseContentType: "application/pdf",
   })
-  return await getSignedUrl(r2, command, { expiresIn: 3600 }) // 1 hour
+  return await getSignedUrl(r2, command, { expiresIn: 3600 })
 }
 
 export async function deleteFromR2(key: string) {
