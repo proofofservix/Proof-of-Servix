@@ -3,6 +3,8 @@ import { prisma } from "@/app/lib/prisma"
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib"
 import QRCode from "qrcode"
 import { formatInTimeZone } from 'date-fns-tz'
+import fs from "fs"
+import path from "path"
 
 export async function GET(
   req: Request,
@@ -29,96 +31,165 @@ export async function GET(
     const pdfDoc = await PDFDocument.create()
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica)
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold)
+    const italicFont = await pdfDoc.embedFont(StandardFonts.HelveticaOblique)
 
     const page = pdfDoc.addPage([600, 800])
     const { width, height } = page.getSize()
     
-    let y = height - 70
+    let y = height - 80
 
-    // --- CERTIFICATE BORDER ---
+    // --- OUTER BORDER ---
     page.drawRectangle({
-      x: 20,
-      y: 20,
-      width: width - 40,
-      height: height - 40,
-      borderColor: rgb(0.3, 0.68, 0.49),
-      borderWidth: 2,
+      x: 25, y: 25, width: width - 50, height: height - 50,
+      borderColor: rgb(0.3, 0.68, 0.49), borderWidth: 3,
     })
 
-    // --- QR CODE ---
+    // --- INNER BORDER (Subtle) ---
+    page.drawRectangle({
+      x: 30, y: 30, width: width - 60, height: height - 60,
+      borderColor: rgb(0.8, 0.8, 0.8), borderWidth: 1,
+    })
+
+    // --- LOGO WATERMARK (Faint, Center) ---
+    const logoPath = path.join(process.cwd(), "public", "pos_logo.png")
+    const logoBytes = fs.readFileSync(logoPath)
+    const logoImage = await pdfDoc.embedPng(logoBytes)
+    const watermarkWidth = width * 0.4
+    const watermarkHeight = (logoImage.height / logoImage.width) * watermarkWidth
+    page.drawImage(logoImage, { 
+      x: (width - watermarkWidth) / 2, y: (height - watermarkHeight) / 2, 
+      width: watermarkWidth, height: watermarkHeight, opacity: 0.04
+    })
+
+    // --- CENTRALIZED TITLE ---
+    const title = "CERTIFICATE OF SERVICE AND ACKNOWLEDGEMENT"
+    const titleWidth = boldFont.widthOfTextAtSize(title, 18)
+    page.drawText(title, { x: (width - titleWidth) / 2, y, size: 18, font: boldFont, color: rgb(0.3, 0.68, 0.49) })
+    y -= 25
+    
+    const subtitle = "Official Proof of Delivery and Acknowledgement"
+    const subtitleWidth = italicFont.widthOfTextAtSize(subtitle, 11)
+    page.drawText(subtitle, { x: (width - subtitleWidth) / 2, y, size: 11, font: italicFont, color: rgb(0.5, 0.5, 0.5) })
+    
+    y -= 5
+
+    // --- CUSTOM SEAL IMAGE ---
+    try {
+      const sealPath = path.join(process.cwd(), "public", "cos-seal.png")
+      const sealBytes = fs.readFileSync(sealPath)
+      const sealImage = await pdfDoc.embedPng(sealBytes)
+      
+      const sealWidth = 120
+      const sealHeight = (sealImage.height / sealImage.width) * sealWidth
+      
+      page.drawImage(sealImage, { 
+        x: (width - sealWidth) / 2, 
+        y: y - sealHeight, 
+        width: sealWidth, 
+        height: sealHeight 
+      })
+      
+      y -= (sealHeight + 10) 
+    } catch (err) {
+      console.error("Seal image not found, skipping...", err)
+      y -= 20 
+    }
+
+    // --- HELPER FUNCTION FOR DRAWING BOXES ---
+    const drawBox = (x: number, boxY: number, w: number, h: number) => {
+      page.drawRectangle({
+        x, y: boxY, width: w, height: h,
+        color: rgb(0.97, 0.97, 0.97),
+        borderColor: rgb(0.85, 0.85, 0.85),
+        borderWidth: 1,
+      })
+    }
+
+    // --- TRANSACTION DETAILS ROW ---
+    const boxWidth = (width - 120) / 2
+    drawBox(50, y - 80, boxWidth, 80)
+    drawBox(width - 50 - boxWidth, y - 80, boxWidth, 80)
+
+    page.drawText("TRANSACTION REFERENCE", { x: 60, y: y - 15, size: 9, font: boldFont, color: rgb(0.4, 0.4, 0.4) })
+    page.drawText(transaction.reference, { x: 60, y: y - 35, size: 14, font: boldFont, color: rgb(0.1, 0.1, 0.1) })
+
+    page.drawText("DATE OF DISPATCH", { x: width - 50 - boxWidth + 10, y: y - 15, size: 9, font: boldFont, color: rgb(0.4, 0.4, 0.4) })
+    page.drawText(formatInTimeZone(transaction.createdAt, 'Africa/Lagos', 'MMM dd, yyyy HH:mm zzz'), { x: width - 50 - boxWidth + 10, y: y - 35, size: 11, font: boldFont, color: rgb(0.1, 0.1, 0.1) })
+    
+    y -= 100
+
+    // --- SENDER & RECIPIENT SIDE-BY-SIDE ---
+    drawBox(50, y - 100, boxWidth, 100)
+    drawBox(width - 50 - boxWidth, y - 100, boxWidth, 100)
+
+    page.drawText("SENDER DETAILS", { x: 60, y: y - 15, size: 9, font: boldFont, color: rgb(0.4, 0.4, 0.4) })
+    page.drawText(transaction.sender.name, { x: 60, y: y - 35, size: 12, font: boldFont, color: rgb(0.1, 0.1, 0.1) })
+    page.drawText(`Org: ${transaction.sender.organization || "NIL"}`, { x: 60, y: y - 55, size: 10, font: font, color: rgb(0.3, 0.3, 0.3) })
+    page.drawText(`Email: ${transaction.sender.email}`, { x: 60, y: y - 75, size: 9, font: font, color: rgb(0.3, 0.3, 0.3) })
+
+    const rightX = width - 50 - boxWidth + 10
+    page.drawText("RECIPIENT DETAILS", { x: rightX, y: y - 15, size: 9, font: boldFont, color: rgb(0.4, 0.4, 0.4) })
+    page.drawText(recipient.name, { x: rightX, y: y - 35, size: 12, font: boldFont, color: rgb(0.1, 0.1, 0.1) })
+    page.drawText(`Org: ${recipient.organization || "NIL"}`, { x: rightX, y: y - 55, size: 10, font: font, color: rgb(0.3, 0.3, 0.3) })
+    page.drawText(`Email: ${recipient.email}`, { x: rightX, y: y - 75, size: 9, font: font, color: rgb(0.3, 0.3, 0.3) })
+    
+    y -= 120
+
+    // --- ACKNOWLEDGEMENT BOX (Centralized) ---
+    page.drawRectangle({
+      x: 50, y: y - 70, width: width - 100, height: 70,
+      color: rgb(0.93, 0.98, 0.94),
+      borderColor: rgb(0.3, 0.68, 0.49),
+      borderWidth: 1,
+    })
+    
+    const ackTitle = "DATE OF ACKNOWLEDGEMENT"
+    const ackTitleWidth = boldFont.widthOfTextAtSize(ackTitle, 9)
+    page.drawText(ackTitle, { x: (width - ackTitleWidth) / 2, y: y - 15, size: 9, font: boldFont, color: rgb(0.3, 0.68, 0.49) })
+
+    const ackDate = recipient.acknowledgedAt ? formatInTimeZone(recipient.acknowledgedAt, 'Africa/Lagos', 'MMMM dd, yyyy HH:mm:ss zzz') : 'N/A'
+    const ackDateWidth = boldFont.widthOfTextAtSize(ackDate, 14)
+    page.drawText(ackDate, { x: (width - ackDateWidth) / 2, y: y - 35, size: 14, font: boldFont, color: rgb(0.1, 0.1, 0.1) })
+
+    const ackText = "The recipient has successfully verified access and acknowledged receipt of the document(s) listed below."
+    const ackTextWidth = italicFont.widthOfTextAtSize(ackText, 9)
+    page.drawText(ackText, { x: (width - ackTextWidth) / 2, y: y - 55, size: 9, font: italicFont, color: rgb(0.4, 0.4, 0.4) })
+
+    y -= 90
+
+    // --- DOCUMENTS LIST ---
+    page.drawText("ACKNOWLEDGED DOCUMENTS", { x: 50, y: y, size: 9, font: boldFont, color: rgb(0.4, 0.4, 0.4) })
+    y -= 15
+
+    transaction.documents.forEach((doc, index) => {
+      page.drawText(`${index + 1}. ${doc.isMainDocument ? "Main Document" : "Supporting File"}: ${doc.title}`, { x: 50, y, size: 10, font: boldFont, color: rgb(0.2, 0.2, 0.2) })
+      y -= 12
+      page.drawText(`File: ${doc.filename}`, { x: 60, y, size: 8, font: font, color: rgb(0.5, 0.5, 0.5) })
+      y -= 18
+    })
+
+    // --- QR CODE (Bottom Right, Bigger) ---
     const verifyUrl = `${process.env.APP_URL || "https://proofofservix.com"}/verify?ref=${transaction.reference}`
     const qrDataUrl = await QRCode.toDataURL(verifyUrl)
     const qrImage = await pdfDoc.embedPng(qrDataUrl)
-    const qrSize = 80
-    page.drawImage(qrImage, { x: width - 50 - qrSize, y: height - 70 - qrSize, width: qrSize, height: qrSize })
-
-    // --- HEADER ---
-    page.drawText("CERTIFICATE OF SERVICE", { x: 50, y, size: 22, font: boldFont, color: rgb(0.3, 0.68, 0.49) })
-    y -= 25
-    page.drawText("AND ACKNOWLEDGEMENT", { x: 50, y, size: 22, font: boldFont, color: rgb(0.3, 0.68, 0.49) })
-    y -= 20
-    page.drawText("Obtained from proofofservix.com", { x: 50, y, size: 12, font, color: rgb(0.4, 0.4, 0.4) })
-    y -= 40
-
-    // --- TRANSACTION DETAILS ---
-    page.drawText("Transaction Details", { x: 50, y, size: 14, font: boldFont })
-    y -= 25
-    page.drawText(`Reference: ${transaction.reference}`, { x: 50, y, size: 12, font })
-    y -= 15
-    page.drawText(`Date of Dispatch: ${formatInTimeZone(transaction.createdAt, 'Africa/Lagos', 'yyyy-MM-dd HH:mm:ss zzz')}`, { x: 50, y, size: 12, font })
-    y -= 15
-    page.drawText(`Date of Acknowledgement: ${recipient.acknowledgedAt ? formatInTimeZone(recipient.acknowledgedAt, 'Africa/Lagos', 'yyyy-MM-dd HH:mm:ss zzz') : 'N/A'}`, { x: 50, y, size: 12, font })
-    y -= 40
-
-    // --- SENDER DETAILS ---
-    page.drawText("Sender", { x: 50, y, size: 14, font: boldFont })
-    y -= 25
-    page.drawText(`Name: ${transaction.sender.name}`, { x: 50, y, size: 12, font })
-    y -= 15
-    page.drawText(`Organization: ${transaction.sender.organization || "NIL"}`, { x: 50, y, size: 12, font })
-    y -= 40
-
-    // --- STATEMENT OF ACKNOWLEDGEMENT ---
-    page.drawText("Statement of Acknowledgement", { x: 50, y, size: 14, font: boldFont })
-    y -= 25
     
-    const text1 = "The document described below was duly delivered to the designated recipient details."
-    const text2 = `Recipient Name: ${recipient.name}`
-    const text3 = `Organization: ${recipient.organization || "NIL"}`
-    const text4 = `Email Address: ${recipient.email}`
+    const qrSize = 140 
     
-    page.drawText(text1, { x: 50, y, size: 11, font, color: rgb(0.2, 0.2, 0.2) })
-    y -= 20
-    page.drawText(text2, { x: 50, y, size: 12, font, color: rgb(0.2, 0.2, 0.2) })
-    y -= 15
-    page.drawText(text3, { x: 50, y, size: 12, font, color: rgb(0.2, 0.2, 0.2) })
-    y -= 15
-    page.drawText(text4, { x: 50, y, size: 12, font, color: rgb(0.2, 0.2, 0.2) })
-    y -= 30
-
-    page.drawText("The designated recipient successfully verified their access to the document", { x: 50, y, size: 11, font, color: rgb(0.2, 0.2, 0.2) })
-    y -= 15
-    page.drawText("and expressly acknowledged receipt and access thereof.", { x: 50, y, size: 11, font, color: rgb(0.2, 0.2, 0.2) })
-    y -= 40
-
-    // --- DOCUMENT DETAILS (NUMBERED) ---
-    page.drawText("Document Details", { x: 50, y, size: 14, font: boldFont })
-    y -= 25
-    
-    transaction.documents.forEach((doc, index) => {
-      page.drawText(`${index + 1}. ${doc.isMainDocument ? "Main Document" : "Supporting File"}: ${doc.title}`, { x: 50, y, size: 11, font: boldFont })
-      y -= 15
-      page.drawText(`Original File: ${doc.filename}`, { x: 50, y, size: 9, font, color: rgb(0.4, 0.4, 0.4) })
-      y -= 15
-      page.drawText(`SHA-256 Hash: ${doc.sha256}`, { x: 50, y, size: 8, font, color: rgb(0.6, 0.6, 0.6) })
-      y -= 25
+    page.drawImage(qrImage, { 
+      x: width - 60 - qrSize, 
+      y: 70, // Moved slightly up to leave room for the text below
+      width: qrSize, 
+      height: qrSize 
     })
 
-    // --- FOOTER ---
-    page.drawText("Scan the QR code above or visit proofofservix.com/verify to verify this certificate online.", { x: 50, y: 90, size: 9, font, color: rgb(0.3, 0.3, 0.3) })
-    page.drawText("Verification Fee: NGN 1,000 per document.", { x: 50, y: 75, size: 9, font, color: rgb(0.5, 0.5, 0.5) })
-    page.drawText("This certificate confirms that the recipient verified their access and expressly acknowledged receipt of the document. It does not constitute agreement with the document's contents.", {
-      x: 50, y: 45, size: 9, font, color: rgb(0.5, 0.5, 0.5), maxWidth: width - 100
+    // --- FOOTER TEXT (Below QR Code, Single Line) ---
+    page.drawText("Scan the QR code to verify this document, or visit proofofservix.com/verify and enter the reference number.", { 
+      x: 50, 
+      y: 40, // Placed below the QR code (which ends at y:70)
+      size: 9, 
+      font: font, 
+      color: rgb(0.3, 0.3, 0.3), 
+      maxWidth: width - 100 // Full width to keep it on one line
     })
 
     const pdfBytes = await pdfDoc.save()

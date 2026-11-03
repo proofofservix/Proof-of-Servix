@@ -3,6 +3,8 @@ import { prisma } from "@/app/lib/prisma"
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib"
 import QRCode from "qrcode"
 import { formatInTimeZone } from 'date-fns-tz'
+import fs from "fs"
+import path from "path"
 
 export async function GET(
   req: Request,
@@ -33,12 +35,22 @@ export async function GET(
     
     let y = height - 50
 
-    // --- QR CODE ---
-    const verifyUrl = `${process.env.APP_URL || "https://proofofservix.com"}/verify?ref=${transaction.reference}`
-    const qrDataUrl = await QRCode.toDataURL(verifyUrl)
-    const qrImage = await pdfDoc.embedPng(qrDataUrl)
-    const qrSize = 80
-    page.drawImage(qrImage, { x: width - 50 - qrSize, y: height - 50 - qrSize, width: qrSize, height: qrSize })
+    // --- LOGO WATERMARK (Top Right, Same Size) ---
+    const logoPath = path.join(process.cwd(), "public", "pos_logo.png")
+    const logoBytes = fs.readFileSync(logoPath)
+    const logoImage = await pdfDoc.embedPng(logoBytes)
+    
+    // Keep the large size (60% of page width)
+    const watermarkWidth = width * 0.6
+    const watermarkHeight = (logoImage.height / logoImage.width) * watermarkWidth
+    
+    page.drawImage(logoImage, { 
+      x: width - watermarkWidth, // Align to the right edge
+      y: height - watermarkHeight, // Align to the top edge
+      width: watermarkWidth, 
+      height: watermarkHeight,
+      opacity: 0.05 // Keep it faint
+    })
 
     // --- HEADER ---
     page.drawText("SERVICE SUBMISSION RECEIPT", { x: 50, y, size: 18, font: boldFont, color: rgb(0.3, 0.68, 0.49) })
@@ -82,16 +94,31 @@ export async function GET(
       page.drawText(`${index + 1}. ${doc.isMainDocument ? "Main Document" : "Supporting File"}: ${doc.title}`, { x: 50, y, size: 12, font: boldFont })
       y -= 15
       page.drawText(`Original File: ${doc.filename}`, { x: 50, y, size: 10, font, color: rgb(0.4, 0.4, 0.4) })
-      y -= 15
-      page.drawText(`SHA-256 Hash: ${doc.sha256}`, { x: 50, y, size: 8, font, color: rgb(0.6, 0.6, 0.6) })
       y -= 25
     })
 
-    // --- FOOTER ---
-    page.drawText("Scan the QR code above or visit proofofservix.com/verify to verify this document online.", { x: 50, y: 90, size: 9, font, color: rgb(0.3, 0.3, 0.3) })
-    page.drawText("Verification Fee: NGN 1,000 per document.", { x: 50, y: 75, size: 9, font, color: rgb(0.5, 0.5, 0.5) })
-    page.drawText("This receipt proves submission and dispatch initiation. It does not constitute proof of acknowledgement or legal service.", {
-      x: 50, y: 50, size: 9, font, color: rgb(0.5, 0.5, 0.5), maxWidth: width - 100
+    // --- QR CODE (Bottom Right) ---
+    const verifyUrl = `${process.env.APP_URL || "https://proofofservix.com"}/verify?ref=${transaction.reference}`
+    const qrDataUrl = await QRCode.toDataURL(verifyUrl)
+    const qrImage = await pdfDoc.embedPng(qrDataUrl)
+    
+    const qrSize = 140 
+    
+    page.drawImage(qrImage, { 
+      x: width - 80 - qrSize, 
+      y: 160, 
+      width: qrSize, 
+      height: qrSize 
+    })
+
+    // --- FOOTER TEXT ---
+    page.drawText("Scan the QR code to verify this document, or visit proofofservix.com/verify and enter the reference number.", { 
+      x: 50, 
+      y: 120, 
+      size: 10, 
+      font: font, 
+      color: rgb(0.3, 0.3, 0.3), 
+      maxWidth: width - 100 
     })
 
     const pdfBytes = await pdfDoc.save()

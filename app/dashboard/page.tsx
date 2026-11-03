@@ -19,6 +19,13 @@ export default async function Dashboard() {
     include: { recipients: true }
   })
 
+  // Helper function to display user-friendly status names
+  const getStatusDisplay = (status: string) => {
+    if (status === "PENDING_PAYMENT") return "Dispatched"
+    if (status === "ACKNOWLEDGED") return "Received"
+    return status.replace("_", " ")
+  }
+
   return (
     <div className="p-8 max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-8">
@@ -58,7 +65,7 @@ export default async function Dashboard() {
                             r.status === "VERIFIED" ? "text-blue-600" : 
                             "text-yellow-600"
                           }`}>
-                            [{r.status}]
+                            [{getStatusDisplay(r.status)}]
                           </span>
                         </li>
                       ))}
@@ -72,7 +79,7 @@ export default async function Dashboard() {
                     tx.status === "DISPATCHED" ? "bg-blue-100 text-blue-800" : 
                     "bg-yellow-100 text-yellow-800"
                   }`}>
-                    {tx.status.replace("_", " ")}
+                    {getStatusDisplay(tx.status)}
                   </span>
                   
                   <div className="flex gap-3 mt-1">
