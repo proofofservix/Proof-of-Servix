@@ -20,10 +20,9 @@ export async function sendEmail({
     console.log(`Attempting to send email to: ${to}`)
     
     const { data, error } = await notix.emails.send({
-      // Professional display name with the noreply address
-      from: "Proof of Servix <noreply@mail.proofofservix.com>", 
+      // Notice there is NO space between the name and the <
+      from: "Proof of Servix<noreply@mail.proofofservix.com>", 
       
-      // If the recipient hits 'Reply', it goes to this address
       replyTo: "support@proofofservix.com", 
       
       to,
