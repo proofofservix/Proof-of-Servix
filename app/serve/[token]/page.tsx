@@ -1,5 +1,4 @@
 import { prisma } from "@/app/lib/prisma"
-import DocumentViewer from "./DocumentViewer"
 import ClientActions from "./ClientActions"
 
 export const instant = false
@@ -36,7 +35,6 @@ export default async function ServePage({
 
   const isValidVerificationToken = vt && vt === recipient.verificationToken
 
-  // Auto-verify if the URL has the correct magic token
   if (isValidVerificationToken && recipient.status === "PENDING") {
     await prisma.transactionRecipient.update({
       where: { id: recipient.id },
@@ -47,6 +45,8 @@ export default async function ServePage({
       }
     })
   }
+
+  const isVerified = isValidVerificationToken || recipient.status === "VERIFIED"
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
@@ -71,26 +71,22 @@ export default async function ServePage({
 
         {recipient.status === "ACKNOWLEDGED" ? (
           <div className="bg-green-50 text-green-700 p-4 rounded border border-green-200 text-center">
-            <p className="font-bold">This document has already been acknowledged.</p>
+            <p className="font-bold">This document has already been accessed and acknowledged.</p>
             <a 
               href={`/api/documents/${recipient.transaction.documents[0]?.id}`} 
               target="_blank"
               className="block w-full mt-4 bg-gray-100 text-gray-800 border border-gray-300 p-3 rounded font-bold hover:bg-gray-200"
             >
-              View Document Again
+              Download Document Again
             </a>
           </div>
-        ) : isValidVerificationToken || recipient.status === "VERIFIED" ? (
-          <DocumentViewer 
-            token={token} 
-            documentId={recipient.transaction.documents[0]?.id || ""} 
-          />
         ) : (
           <ClientActions 
             token={token} 
             hasEmail={!!recipient.email} 
             hasPhone={!!recipient.whatsapp}
             documentId={recipient.transaction.documents[0]?.id || ""} 
+            isVerified={isVerified}
           />
         )}
 

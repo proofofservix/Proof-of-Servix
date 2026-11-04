@@ -5,14 +5,18 @@ export default function ClientActions({
   token, 
   hasEmail, 
   hasPhone, 
-  documentId 
+  documentId,
+  isVerified = false
 }: { 
   token: string, 
   hasEmail: boolean, 
   hasPhone: boolean, 
-  documentId: string 
+  documentId: string,
+  isVerified?: boolean
 }) {
-  const [step, setStep] = useState<"start" | "choose" | "otp" | "verified">("start")
+  const [step, setStep] = useState<"start" | "choose" | "otp" | "verified">(
+    isVerified ? "verified" : "start"
+  )
   const [channel, setChannel] = useState<"email" | "sms">("email")
   const [code, setCode] = useState("")
   const [error, setError] = useState("")
@@ -48,7 +52,7 @@ export default function ClientActions({
     if (res.ok) {
       setStep("verified")
     } else {
-      setError("Invalid code. Please check your terminal.")
+      setError("Invalid code. Please check your email/SMS.")
     }
     setLoading(false)
   }
@@ -72,19 +76,8 @@ export default function ClientActions({
           <p className="font-bold">Verification Complete</p>
         </div>
 
-        <a 
-          href={`/api/documents/${documentId}`} 
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block w-full bg-gray-100 text-gray-800 border border-gray-300 p-3 rounded font-bold hover:bg-gray-200"
-        >
-          Preview Document
-        </a>
-
-        <hr className="border-gray-200" />
-
         <div className="text-left bg-gray-50 p-4 rounded border">
-          <p className="font-semibold mb-3">Acknowledge Receipt</p>
+          <p className="font-semibold mb-3">Access Document</p>
           
           <label className="flex items-start gap-3 cursor-pointer">
             <input 
@@ -103,7 +96,7 @@ export default function ClientActions({
             disabled={!hasConsented || loading}
             className="mt-4 w-full bg-[#4CAF7D] text-white p-3 rounded font-bold hover:bg-[#3d9c6c] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
-            {loading ? "Processing..." : "Acknowledge & Download"}
+            {loading ? "Processing..." : "Access & Download"}
           </button>
         </div>
       </div>
@@ -115,7 +108,7 @@ export default function ClientActions({
       <form onSubmit={handleVerify} className="space-y-4">
         {error && <p className="text-red-500 text-sm text-center">{error}</p>}
         <p className="text-sm text-center text-gray-600">
-          Enter the 4-digit code sent via {channel === "email" ? "Email" : "SMS"}. (Check VS Code Terminal)
+          Enter the 4-digit code sent via {channel === "email" ? "Email" : "SMS"}.
         </p>
         <input 
           type="text" 
@@ -168,7 +161,7 @@ export default function ClientActions({
         onClick={() => setStep("choose")}
         className="w-full bg-[#4CAF7D] text-white p-3 rounded font-bold hover:bg-[#3d9c6c]"
       >
-        Verify to View
+        Verify to Access
       </button>
       <p className="text-xs text-gray-400 mt-4">
         This link is unique to you. Do not forward it.
