@@ -20,8 +20,12 @@ export async function sendEmail({
     console.log(`Attempting to send email to: ${to}`)
     
     const { data, error } = await notix.emails.send({
-      // Simplified: No display name, just the raw email on the verified domain
-      from: "noreply@mail.proofofservix.com", 
+      // Professional display name with the noreply address
+      from: "Proof of Servix <noreply@mail.proofofservix.com>", 
+      
+      // If the recipient hits 'Reply', it goes to this address
+      replyTo: "support@proofofservix.com", 
+      
       to,
       subject,
       html,
