@@ -5,26 +5,24 @@ import { useSearchParams } from "next/navigation"
 function ResultContent() {
   const searchParams = useSearchParams()
   const reference = searchParams.get("ref")
-  const gatewayRef = searchParams.get("gatewayRef")
-  const docType = searchParams.get("docType") || "BOTH"
   
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading")
   const [certificateData, setCertificateData] = useState<any>(null)
   const [errorMsg, setErrorMsg] = useState("")
 
   useEffect(() => {
-    if (!reference || !gatewayRef) {
+    if (!reference) {
       setStatus("error")
-      setErrorMsg("Missing parameters")
+      setErrorMsg("Missing reference.")
       return
     }
 
-    const checkPayment = async () => {
+    const checkCertificate = async () => {
       try {
-        const res = await fetch("/api/paystack/verify-result", {
+        const res = await fetch("/api/verify-result", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reference, gatewayRef })
+          body: JSON.stringify({ reference })
         })
 
         const data = await res.json()
@@ -33,22 +31,22 @@ function ResultContent() {
           setCertificateData(data)
           setStatus("success")
         } else {
-          setErrorMsg(data.error || "Payment verification failed")
+          setErrorMsg(data.error || "Certificate not found.")
           setStatus("error")
         }
       } catch (err) {
-        setErrorMsg("Network error")
+        setErrorMsg("Network error.")
         setStatus("error")
       }
     }
 
-    checkPayment()
-  }, [reference, gatewayRef])
+    checkCertificate()
+  }, [reference])
 
   if (status === "loading") {
     return (
       <div className="flex min-h-screen items-center justify-center">
-        <p className="text-xl font-bold animate-pulse text-[#4CAF7D]">Verifying Payment...</p>
+        <p className="text-xl font-bold animate-pulse text-[#4CAF7D]">Verifying Certificate...</p>
       </div>
     )
   }
@@ -68,30 +66,28 @@ function ResultContent() {
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-xl bg-white p-8 rounded-lg shadow-sm border">
         <div className="text-center mb-8 border-b pb-6">
-          <h1 className="text-2xl font-bold text-[#4CAF7D]">Verify Certificate</h1>
+          <h1 className="text-2xl font-bold text-[#4CAF7D]">Certificate Verification</h1>
         </div>
 
         <div className="space-y-6">
           <div className="bg-green-50 text-green-700 p-4 rounded border border-green-200 text-center">
-            <h2 className="text-xl font-bold mb-1">Payment Successful</h2>
-            <p className="text-sm">You can now download the verified document(s).</p>
+            <h2 className="text-xl font-bold mb-1">Certificate is Valid</h2>
+            <p className="text-sm">This document was issued by Proof of Servix.</p>
           </div>
 
           <div className="bg-gray-50 p-4 rounded border space-y-4">
             <p><strong>Transaction Reference:</strong> {certificateData.transactionReference}</p>
             
-            <div className="flex flex-col gap-3">
-              {(docType === "SSR" || docType === "BOTH") && (
-                <a 
-                  href={`/api/transactions/${certificateData.transactionId}/ssr`}
-                  target="_blank"
-                  className="block w-full text-center bg-gray-800 text-white p-3 rounded font-bold hover:bg-gray-700"
-                >
-                  Download Service Submission Receipt (SSR)
-                </a>
-              )}
+            <div className="flex flex-col gap-3 mt-4">
+              <a 
+                href={`/api/transactions/${certificateData.transactionId}/ssr`}
+                target="_blank"
+                className="block w-full text-center bg-gray-800 text-white p-3 rounded font-bold hover:bg-gray-700"
+              >
+                Download Service Submission Receipt (SSR)
+              </a>
 
-              {(docType === "CSA" || docType === "BOTH") && (
+              {certificateData.isAcknowledged && (
                 <a 
                   href={`/api/transactions/${certificateData.transactionId}/csa`}
                   target="_blank"

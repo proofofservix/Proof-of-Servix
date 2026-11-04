@@ -1,9 +1,10 @@
 "use client"
 import { useState, Suspense } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 
 function VerifyForm() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const initialRef = searchParams.get("ref") || ""
   
   const [reference, setReference] = useState(initialRef)
@@ -16,19 +17,19 @@ function VerifyForm() {
     setErrorMsg("")
 
     try {
-      // Direct verification without payment
+      // Check if the transaction exists in the database before redirecting
       const res = await fetch("/api/verify-direct", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ reference })
       })
 
-      const data = await res.json()
-
       if (res.ok) {
-        window.location.href = `/verify/result?ref=${reference}&docType=BOTH`
+        // Redirect to the result page with just the reference
+        router.push(`/verify/result?ref=${reference}`)
       } else {
-        setErrorMsg(data.error || "Verification failed.")
+        const data = await res.json()
+        setErrorMsg(data.error || "Verification failed. Please check the reference number.")
         setLoading(false)
       }
     } catch (err) {
@@ -65,7 +66,7 @@ function VerifyForm() {
             disabled={loading}
             className="w-full bg-[#4CAF7D] text-white p-3 rounded font-bold disabled:opacity-50"
           >
-            {loading ? "Verifying..." : `Verify`}
+            {loading ? "Verifying..." : "Verify Document"}
           </button>
         </form>
       </div>
