@@ -14,10 +14,6 @@ export default function Form({ senderId }: { senderId: string }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const BASE_FEE = 1500 // ₦1,500 base covers up to 3 files
-  const EXTRA_FILE_FEE = 500 // ₦500 per extra file
-  const FREE_FILES = 3
-
   const handleAddRecipient = () => {
     setRecipients([...recipients, { name: "", organization: "", email: "", phone: "" }])
   }
@@ -42,7 +38,7 @@ export default function Form({ senderId }: { senderId: string }) {
       return setError("File must be less than 10MB")
     }
     setDocuments([...documents, { file, title: "" }])
-    e.target.value = "" // Reset input
+    e.target.value = "" 
   }
 
   const handleRemoveFile = (index: number) => {
@@ -56,12 +52,6 @@ export default function Form({ senderId }: { senderId: string }) {
     newDocs[index].title = title
     setDocuments(newDocs)
   }
-
-  // Calculate Total Price
-  const extraFiles = Math.max(0, documents.length - FREE_FILES)
-  const fileFee = extraFiles * EXTRA_FILE_FEE
-  const totalPerRecipient = BASE_FEE + fileFee
-  const totalPrice = totalPerRecipient * recipients.length
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -92,25 +82,7 @@ export default function Form({ senderId }: { senderId: string }) {
       })
 
       if (res.ok) {
-        const data = await res.json()
-        
-        const paystackRes = await fetch("/api/paystack/initialize", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            transactionIds: data.transactionIds, 
-            totalAmount: totalPrice 
-          })
-        })
-
-        const paystackData = await paystackRes.json()
-
-        if (paystackData.authorization_url) {
-          window.location.href = paystackData.authorization_url
-        } else {
-          setError(paystackData.error || "Failed to initialize payment")
-          setLoading(false)
-        }
+        router.push("/dashboard")
       } else {
         const data = await res.json()
         setError(data.error || "Something went wrong")
@@ -132,7 +104,7 @@ export default function Form({ senderId }: { senderId: string }) {
         {/* DOCUMENTS SECTION */}
         <div className="bg-white p-6 rounded-lg border shadow-sm space-y-4">
           <div className="flex justify-between items-center border-b pb-2">
-            <h2 className="font-bold text-lg">1. Documents (Base fee covers first 3)</h2>
+            <h2 className="font-bold text-lg">1. Documents</h2>
           </div>
 
           <div className="space-y-4">
@@ -170,18 +142,12 @@ export default function Form({ senderId }: { senderId: string }) {
             <p className="font-semibold text-[#4CAF7D]">+ Click to add a file</p>
             <p className="text-xs text-gray-500 mt-1">Max 10MB per file. Add the main document and any supporting files.</p>
           </div>
-
-          {documents.length > 3 && (
-            <p className="text-sm text-[#F07A35] font-semibold bg-orange-50 p-2 rounded">
-              Note: Adding more than 3 files costs ₦{EXTRA_FILE_FEE} per extra file.
-            </p>
-          )}
         </div>
 
         {/* RECIPIENTS SECTION */}
         <div className="bg-white p-6 rounded-lg border shadow-sm space-y-6">
           <div className="flex justify-between items-center border-b pb-2">
-            <h2 className="font-bold text-lg">2. Recipients (₦{BASE_FEE} each)</h2>
+            <h2 className="font-bold text-lg">2. Recipients</h2>
             <button type="button" onClick={handleAddRecipient} className="text-sm font-bold text-[#4CAF7D] hover:underline">
               + Add Another Recipient
             </button>
@@ -209,22 +175,18 @@ export default function Form({ senderId }: { senderId: string }) {
           ))}
         </div>
 
-        {/* PRICE PREVIEW & SUBMIT */}
+        {/* SUBMIT SECTION */}
         <div className="bg-gray-800 text-white p-6 rounded-lg flex flex-col md:flex-row justify-between items-center gap-4">
           <div>
-            <p className="text-gray-400 text-sm mb-1">Breakdown:</p>
-            <ul className="text-xs text-gray-400 mb-2 space-y-1">
-              <li>{recipients.length} Recipient(s) × ₦{BASE_FEE} = ₦{(recipients.length * BASE_FEE).toLocaleString()}</li>
-              {extraFiles > 0 && <li>{extraFiles} Extra File(s) × ₦{EXTRA_FILE_FEE} = ₦{fileFee.toLocaleString()}</li>}
-            </ul>
-            <p className="text-3xl font-bold text-[#4CAF7D]">₦{totalPrice.toLocaleString()}</p>
+            <p className="text-lg font-bold">Send for Free</p>
+            <p className="text-xs text-gray-400 mt-1">Your document will be dispatched instantly.</p>
           </div>
           <button 
             type="submit" 
             disabled={loading || documents.length === 0}
-            className="w-full md:w-auto bg-[#F07A35] text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-[#d96b2c] disabled:opacity-50 transition-colors"
+            className="w-full md:w-auto bg-[#4CAF7D] text-white px-8 py-4 rounded-lg font-bold text-lg hover:bg-[#3d9c6c] disabled:opacity-50 transition-colors"
           >
-            {loading ? "Processing..." : `Pay ₦${totalPrice.toLocaleString()} & Send`}
+            {loading ? "Dispatching..." : "Send Document"}
           </button>
         </div>
       </form>

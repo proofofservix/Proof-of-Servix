@@ -17,7 +17,6 @@ export default function Home() {
           <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
             <Link href="/verify" className="hover:text-[#4CAF7D] transition-colors">Verify</Link>
             <Link href="/contact" className="hover:text-[#4CAF7D] transition-colors">Contact Us</Link>
-            <Link href="/pricing" className="hover:text-[#4CAF7D] transition-colors">Pricing</Link>
           </div>
 
           <div className="flex items-center gap-6">
@@ -36,7 +35,8 @@ export default function Home() {
         </div>
         <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-gray-900 mb-6 leading-tight max-w-4xl">
           Send It. Prove It. <br />
-          <span className="text-[#4CAF7D]">Defend It.</span>
+          <span className="text-gray-900">For </span>
+          <span className="text-[#4CAF7D]">Free.</span>
         </h1>
         <p className="text-xl text-gray-600 max-w-2xl mb-10 leading-relaxed">
           The secure platform for electronic document service. Easily serve documents and obtain your proof of service with just a few clicks. Built for businesses, organisations, and legal practitioners.
@@ -60,7 +60,7 @@ export default function Home() {
             <div className="bg-gray-50 p-8 rounded-xl shadow-sm border border-gray-100 text-center relative">
               <div className="w-12 h-12 bg-[#4CAF7D] text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6">1</div>
               <h3 className="font-bold text-xl mb-3">Upload & Dispatch</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">Upload your document, enter the recipient's details, and pay the service fee. Dispatch is initiated instantly.</p>
+              <p className="text-gray-600 text-sm leading-relaxed">Upload your document, and enter the recipient's details. Dispatch is initiated instantly.</p>
             </div>
 
             <div className="bg-gray-50 p-8 rounded-xl shadow-sm border border-gray-100 text-center relative">
@@ -72,7 +72,7 @@ export default function Home() {
             <div className="bg-gray-50 p-8 rounded-xl shadow-sm border border-gray-100 text-center relative">
               <div className="w-12 h-12 bg-gray-800 text-white rounded-full flex items-center justify-center text-xl font-bold mx-auto mb-6">3</div>
               <h3 className="font-bold text-xl mb-3">Download Your Proof</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">Download your cryptographically hashed proof of service with the recipient's timestamp and evidence logs.</p>
+              <p className="text-gray-600 text-sm leading-relaxed">Download your proof of service with the recipient's timestamp and evidence logs.</p>
             </div>
 
           </div>
@@ -121,7 +121,6 @@ export default function Home() {
             <p className="text-sm text-gray-500 mt-2">Send It. Prove It.</p>
           </div>
           <div className="flex gap-6 text-sm text-gray-500">
-            <Link href="/pricing" className="hover:text-[#4CAF7D]">Pricing</Link>
             <Link href="/verify" className="hover:text-[#4CAF7D]">Verify</Link>
             <Link href="/contact" className="hover:text-[#4CAF7D]">Contact Us</Link>
             <Link href="/terms" className="hover:text-[#4CAF7D]">Terms</Link>

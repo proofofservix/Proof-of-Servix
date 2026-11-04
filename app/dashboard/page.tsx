@@ -21,8 +21,8 @@ export default async function Dashboard() {
 
   // Helper function to display user-friendly status names
   const getStatusDisplay = (status: string) => {
-    if (status === "PENDING_PAYMENT") return "Dispatched"
-    if (status === "ACKNOWLEDGED") return "Received"
+    if (status === "PENDING_PAYMENT" || status === "DISPATCHED") return "Delivered"
+    if (status === "ACKNOWLEDGED") return "Acknowledged"
     return status.replace("_", " ")
   }
 
@@ -63,7 +63,7 @@ export default async function Dashboard() {
                           <span className={`ml-2 text-xs font-bold ${
                             r.status === "ACKNOWLEDGED" ? "text-green-600" : 
                             r.status === "VERIFIED" ? "text-blue-600" : 
-                            "text-yellow-600"
+                            "text-gray-600"
                           }`}>
                             [{getStatusDisplay(r.status)}]
                           </span>
@@ -76,8 +76,7 @@ export default async function Dashboard() {
                 <div className="text-right flex flex-col items-end">
                   <span className={`text-xs font-bold px-2.5 py-1 rounded block mb-2 ${
                     tx.status === "ACKNOWLEDGED" ? "bg-green-100 text-green-800" : 
-                    tx.status === "DISPATCHED" ? "bg-blue-100 text-blue-800" : 
-                    "bg-yellow-100 text-yellow-800"
+                    "bg-gray-100 text-gray-800"
                   }`}>
                     {getStatusDisplay(tx.status)}
                   </span>
@@ -106,26 +105,25 @@ export default async function Dashboard() {
                 </div>
               </div>
 
-              {(tx.status === "DISPATCHED" || tx.status === "ACKNOWLEDGED") && (
-                <div className="pt-4 border-t">
-                  <p className="text-xs text-gray-500 mb-2 font-medium">Secure Document Links:</p>
-                  
-                  <div className="space-y-2">
-                    {tx.recipients.map((r) => (
-                      <div key={r.id} className="flex items-center gap-2">
-                        <span className="text-xs font-semibold w-24 truncate">{r.name}:</span>
-                        <input 
-                          type="text" 
-                          readOnly 
-                          value={`${process.env.APP_URL || "https://proofofservix.com"}/serve/${r.linkTokenHash}?vt=${r.verificationToken}`}
-                          className="w-full text-xs p-2 bg-gray-50 border rounded text-gray-600"
-                        />
-                        <CopyLinkButton token={r.linkTokenHash || ""} />
-                      </div>
-                    ))}
-                  </div>
+              {/* Since every transaction is now "Delivered" upon creation, we always show the links */}
+              <div className="pt-4 border-t">
+                <p className="text-xs text-gray-500 mb-2 font-medium">Secure Document Links:</p>
+                
+                <div className="space-y-2">
+                  {tx.recipients.map((r) => (
+                    <div key={r.id} className="flex items-center gap-2">
+                      <span className="text-xs font-semibold w-24 truncate">{r.name}:</span>
+                      <input 
+                        type="text" 
+                        readOnly 
+                        value={`${process.env.APP_URL || "https://proofofservix.com"}/serve/${r.linkTokenHash}?vt=${r.verificationToken}`}
+                        className="w-full text-xs p-2 bg-gray-50 border rounded text-gray-600"
+                      />
+                      <CopyLinkButton token={r.linkTokenHash || ""} />
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
             </div>
           ))}
         </div>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/app/lib/prisma"
 import { createHash, randomUUID } from "crypto"
 import { uploadToR2 } from "@/app/lib/r2"
+import { sendEmail } from "@/app/lib/email"
 
 export async function POST(req: Request) {
   try {
@@ -18,6 +19,10 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 })
     }
 
+    const sender = await prisma.user.findUnique({ where: { id: senderId } })
+    const senderName = sender?.name || "A sender"
+
+    // Process files and upload to R2
     const documentData = await Promise.all(files.map(async (file, index) => {
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
@@ -44,12 +49,15 @@ export async function POST(req: Request) {
       const rawToken = randomUUID()
       const verificationToken = randomUUID()
 
+      // Create transaction as DISPATCHED immediately (No payment required)
       const transaction = await prisma.transaction.create({
         data: {
           reference,
           senderId,
-          feeAmount: 150000,
-          status: "PENDING_PAYMENT",
+          feeAmount: 0, // Free
+          status: "DISPATCHED", // Skip PENDING_PAYMENT
+          paidAt: new Date(),
+          dispatchedAt: new Date(),
           documents: { create: documentData },
           recipients: {
             create: {
@@ -65,9 +73,28 @@ export async function POST(req: Request) {
         }
       })
       transactionIds.push(transaction.id)
+
+      // Send the email immediately
+      const recipientLink = `${process.env.APP_URL || "https://proofofservix.com"}/serve/${rawToken}?vt=${verificationToken}`
+      
+      await sendEmail({
+        to: recipient.email,
+        subject: "You have received a document - Proof of Servix",
+        html: `
+          <div style="font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto;">
+            <h2 style="color: #4CAF7D;">Proof of Servix</h2>
+            <p>Hello ${recipient.name},</p>
+            <p>You have received a document from <strong>${senderName}</strong>.</p>
+            <p><strong>Document Title:</strong> ${documentMeta[0].title}</p>
+            <p>Click the button below to view the document:</p>
+            <a href="${recipientLink}" style="display: inline-block; background-color: #4CAF7D; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;">View Document</a>
+            <p style="color: #666; font-size: 12px; margin-top: 20px;">This link is unique to you. Do not forward it.</p>
+          </div>
+        `,
+      })
     }
 
-    return NextResponse.json({ message: "Transactions created", transactionIds }, { status: 201 })
+    return NextResponse.json({ message: "Transactions dispatched", transactionIds }, { status: 201 })
   } catch (error) {
     console.error("Transaction error:", error)
     return NextResponse.json({ error: "Something went wrong" }, { status: 500 })
