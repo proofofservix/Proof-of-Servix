@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Script from "next/script";
+import { Analytics } from "@vercel/analytics/react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -45,6 +46,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} bg-gray-50 text-gray-900 antialiased`}>
         {children}
+        
+        {/* Vercel Analytics */}
+        <Analytics />
 
         {/* Tawk.to Support Chat Widget */}
         <Script id="tawk-to" strategy="lazyOnload">
