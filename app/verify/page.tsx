@@ -2,6 +2,8 @@ import Navbar from "../components/PublicNavbar"
 import VerifyForm from "./VerifyForm"
 import { Suspense } from "react"
 
+export const instant = false
+
 export default function VerifyPage() {
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
