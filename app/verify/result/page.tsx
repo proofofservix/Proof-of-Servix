@@ -1,4 +1,4 @@
-import Navbar from "../../../components/PublicNavbar"
+import Navbar from "../../components/PublicNavbar"
 import ResultView from "./ResultView"
 import { Suspense } from "react"
 
