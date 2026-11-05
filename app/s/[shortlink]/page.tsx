@@ -1,5 +1,5 @@
 import { prisma } from "@/app/lib/prisma"
-import { redirect } from "next/navigation"
+import Redirector from "./Redirector"
 
 export const instant = false
 
@@ -25,7 +25,10 @@ export default async function ShortLinkRedirect({
     )
   }
 
-  // Use the absolute URL for the redirect to handle the query parameter correctly
-  const baseUrl = process.env.APP_URL || "https://proofofservix.com"
-  redirect(`${baseUrl}/serve/${recipient.linkTokenHash}?vt=${recipient.verificationToken}`)
+  return (
+    <Redirector 
+      longToken={recipient.linkTokenHash} 
+      verificationToken={recipient.verificationToken || ""} 
+    />
+  )
 }
