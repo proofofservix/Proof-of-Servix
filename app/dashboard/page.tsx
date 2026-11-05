@@ -20,8 +20,14 @@ export default async function Dashboard() {
   })
 
   const getStatusDisplay = (status: string) => {
+    // For the main transaction
     if (status === "PENDING_PAYMENT" || status === "DISPATCHED") return "Delivered"
     if (status === "ACKNOWLEDGED") return "Acknowledged"
+    
+    // For the individual recipient status
+    if (status === "PENDING" || status === "VERIFIED") return "Delivered"
+    if (status === "ACKNOWLEDGED") return "Acknowledged"
+    
     return status.replace("_", " ")
   }
 

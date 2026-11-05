@@ -25,5 +25,7 @@ export default async function ShortLinkRedirect({
     )
   }
 
-  redirect(`/serve/${recipient.linkTokenHash}?vt=${recipient.verificationToken}`)
+  // Use the absolute URL for the redirect to handle the query parameter correctly
+  const baseUrl = process.env.APP_URL || "https://proofofservix.com"
+  redirect(`${baseUrl}/serve/${recipient.linkTokenHash}?vt=${recipient.verificationToken}`)
 }
