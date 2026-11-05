@@ -108,18 +108,27 @@ export default async function Dashboard() {
                 <p className="text-xs text-gray-500 mb-2 font-medium">Secure Document Links:</p>
                 
                 <div className="space-y-2">
-                  {tx.recipients.map((r) => (
-                    <div key={r.id} className="flex items-center gap-2">
-                      <span className="text-xs font-semibold w-24 truncate">{r.name}:</span>
-                      <input 
-                        type="text" 
-                        readOnly 
-                        value={`${process.env.APP_URL || "https://proofofservix.com"}/s/${r.shortLink}`}
-                        className="w-full text-xs p-2 bg-gray-50 border rounded text-gray-600"
-                      />
-                      <CopyLinkButton token={r.shortLink || ""} />
-                    </div>
-                  ))}
+                  {tx.recipients.map((r) => {
+                    const linkToCopy = r.shortLink 
+                      ? `${process.env.APP_URL || "https://proofofservix.com"}/s/${r.shortLink}`
+                      : `${process.env.APP_URL || "https://proofofservix.com"}/serve/${r.linkTokenHash}?vt=${r.verificationToken}`
+
+                    return (
+                      <div key={r.id} className="flex items-center gap-2">
+                        <span className="text-xs font-semibold w-24 truncate">{r.name}:</span>
+                        <input 
+                          type="text" 
+                          readOnly 
+                          value={linkToCopy}
+                          className="w-full text-xs p-2 bg-gray-50 border rounded text-gray-600"
+                        />
+                        <CopyLinkButton 
+                          shortLink={r.shortLink} 
+                          longLink={`${process.env.APP_URL || "https://proofofservix.com"}/serve/${r.linkTokenHash}?vt=${r.verificationToken}`} 
+                        />
+                      </div>
+                    )
+                  })}
                 </div>
               </div>
             </div>

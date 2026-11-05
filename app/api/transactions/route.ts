@@ -22,7 +22,6 @@ export async function POST(req: Request) {
     const sender = await prisma.user.findUnique({ where: { id: senderId } })
     const senderName = sender?.name || "A sender"
 
-    // Process files and upload to R2
     const documentData = await Promise.all(files.map(async (file, index) => {
       const bytes = await file.arrayBuffer()
       const buffer = Buffer.from(bytes)
@@ -48,14 +47,16 @@ export async function POST(req: Request) {
       const reference = `POS-${new Date().getFullYear()}-${Math.floor(Math.random() * 100000).toString().padStart(5, "0")}`
       const rawToken = randomUUID()
       const verificationToken = randomUUID()
+      
+      const shortCode = Math.random().toString(36).substring(2, 10).toUpperCase()
+      const shortLink = `${reference}-${shortCode}`
 
-      // Create transaction as DISPATCHED immediately (No payment required)
       const transaction = await prisma.transaction.create({
         data: {
           reference,
           senderId,
-          feeAmount: 0, // Free
-          status: "DISPATCHED", // Skip PENDING_PAYMENT
+          feeAmount: 0,
+          status: "DISPATCHED",
           paidAt: new Date(),
           dispatchedAt: new Date(),
           documents: { create: documentData },
@@ -65,6 +66,7 @@ export async function POST(req: Request) {
               organization: recipient.organization || null,
               email: recipient.email,
               whatsapp: recipient.phone || null,
+              shortLink: shortLink,
               linkTokenHash: rawToken,
               verificationToken: verificationToken,
               linkExpiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
@@ -74,8 +76,7 @@ export async function POST(req: Request) {
       })
       transactionIds.push(transaction.id)
 
-      // Send the email immediately
-      const recipientLink = `${process.env.APP_URL || "https://proofofservix.com"}/serve/${rawToken}?vt=${verificationToken}`
+      const recipientLink = `${process.env.APP_URL || "https://proofofservix.com"}/s/${shortLink}`
       
       await sendEmail({
         to: recipient.email,
