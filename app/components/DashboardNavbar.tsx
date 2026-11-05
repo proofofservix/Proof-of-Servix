@@ -1,10 +1,7 @@
 "use client"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 
-export default function Navbar({ isAdmin = false, profilePicture }: { isAdmin?: boolean, profilePicture?: string | null }) {
-  const router = useRouter()
-
+export default function DashboardNavbar({ isAdmin = false, profilePicture }: { isAdmin?: boolean, profilePicture?: string | null }) {
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" })
     window.location.href = "/login"

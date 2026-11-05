@@ -1,6 +1,7 @@
 "use client"
 import { useState, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
+import Navbar from "../../components/Navbar"
 
 function VerifyForm() {
   const searchParams = useSearchParams()
@@ -37,36 +38,39 @@ function VerifyForm() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-xl bg-white p-8 rounded-lg shadow-sm border">
-        <div className="text-center mb-8 border-b pb-6">
-          <h1 className="text-2xl font-bold text-[#4CAF7D]">Verify Document</h1>
-          <p className="text-gray-500">Obtained from proofofservix.com</p>
-        </div>
-
-        <form onSubmit={handleVerify} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-sm font-semibold">Transaction Reference</label>
-            <input 
-              type="text" 
-              placeholder="e.g., POS-2026-ABC12" 
-              required
-              value={reference}
-              className="w-full p-2 border rounded"
-              onChange={e => setReference(e.target.value)} 
-            />
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      <Navbar />
+      <div className="flex-1 flex items-center justify-center p-4">
+        <div className="w-full max-w-xl bg-white p-8 rounded-lg shadow-sm border">
+          <div className="text-center mb-8 border-b pb-6">
+            <h1 className="text-2xl font-bold text-[#4CAF7D]">Verify Document</h1>
+            <p className="text-gray-500">Obtained from proofofservix.com</p>
           </div>
 
-          {errorMsg && <p className="text-red-500 text-sm text-center bg-red-50 p-3 rounded">{errorMsg}</p>}
+          <form onSubmit={handleVerify} className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-sm font-semibold">Transaction Reference</label>
+              <input 
+                type="text" 
+                placeholder="e.g., POS-2026-ABC12" 
+                required
+                value={reference}
+                className="w-full p-2 border rounded"
+                onChange={e => setReference(e.target.value)} 
+              />
+            </div>
 
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full bg-[#4CAF7D] text-white p-3 rounded font-bold disabled:opacity-50"
-          >
-            {loading ? "Verifying..." : "Verify Document"}
-          </button>
-        </form>
+            {errorMsg && <p className="text-red-500 text-sm text-center bg-red-50 p-3 rounded">{errorMsg}</p>}
+
+            <button 
+              type="submit" 
+              disabled={loading}
+              className="w-full bg-[#4CAF7D] text-white p-3 rounded font-bold disabled:opacity-50"
+            >
+              {loading ? "Verifying..." : "Verify Document"}
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   )

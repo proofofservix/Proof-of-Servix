@@ -1,4 +1,4 @@
-import Navbar from "../components/Navbar"
+import Navbar from "../components/DashboardNavbar" // Ensure this points to your renamed Dashboard Navbar
 import { getSession } from "../lib/session"
 import { prisma } from "../lib/prisma"
 import { redirect } from "next/navigation"
@@ -22,7 +22,8 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar isAdmin={true} />
+      {/* Pass the profile picture and admin status just like in the dashboard layout */}
+      <Navbar isAdmin={true} profilePicture={user?.profilePicture} />
       <main>{children}</main>
     </div>
   )

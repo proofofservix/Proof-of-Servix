@@ -1,4 +1,4 @@
-import Navbar from "../components/Navbar"
+import DashboardNavbar from "../components/DashboardNavbar" // The one with the logout button
 import { getSession } from "../lib/session"
 import { prisma } from "../lib/prisma"
 import { redirect } from "next/navigation"
@@ -18,7 +18,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar isAdmin={user?.isAdmin} profilePicture={user?.profilePicture} />
+      <DashboardNavbar isAdmin={user?.isAdmin} profilePicture={user?.profilePicture} />
       <main>{children}</main>
     </div>
   )

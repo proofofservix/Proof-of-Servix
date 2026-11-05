@@ -1,32 +1,12 @@
 import Link from "next/link"
-import Image from "next/image"
+import Navbar from "./components/DashboardNavbar"
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-white font-sans text-gray-900">
       
-      {/* NAV BAR */}
-      <header className="w-full border-b border-gray-100 sticky top-0 bg-white/95 backdrop-blur z-50">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-          
-          <Link href="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-            <img src="/pos_logo.png" alt="Proof of Servix" className="h-10 w-auto" />
-            <span className="text-2xl font-bold text-[#4CAF7D]">Proof of Servix</span>
-          </Link>
-
-          <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
-            <Link href="/verify" className="hover:text-[#4CAF7D] transition-colors">Verify</Link>
-            <Link href="/contact" className="hover:text-[#4CAF7D] transition-colors">Contact Us</Link>
-          </div>
-
-          <div className="flex items-center gap-6">
-            <Link href="/login" className="text-sm font-semibold text-gray-600 hover:text-[#4CAF7D]">Log In</Link>
-            <Link href="/register" className="text-sm font-bold bg-[#4CAF7D] text-white px-5 py-2.5 rounded-lg hover:bg-[#3d9c6c] transition-colors">
-              Get Started
-            </Link>
-          </div>
-        </div>
-      </header>
+      {/* GLOBAL NAVBAR */}
+      <Navbar />
 
       {/* HERO SECTION */}
       <main className="flex-1 flex flex-col items-center text-center px-6 pt-24 pb-20 bg-gradient-to-b from-gray-50 to-white">
@@ -121,6 +101,7 @@ export default function Home() {
             <p className="text-sm text-gray-500 mt-2">Send It. Prove It.</p>
           </div>
           <div className="flex gap-6 text-sm text-gray-500">
+            <Link href="/how-it-works" className="hover:text-[#4CAF7D]">How It Works</Link>
             <Link href="/verify" className="hover:text-[#4CAF7D]">Verify</Link>
             <Link href="/contact" className="hover:text-[#4CAF7D]">Contact Us</Link>
             <Link href="/terms" className="hover:text-[#4CAF7D]">Terms</Link>
