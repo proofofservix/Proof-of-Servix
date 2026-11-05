@@ -39,8 +39,8 @@ export default async function Dashboard() {
           <h1 className="text-3xl font-bold">Dashboard</h1>
           <p className="text-gray-500">Welcome back, {session.name}</p>
         </div>
-        <Link 
-          href="/dashboard/new" 
+        <Link
+          href="/dashboard/new"
           className="bg-[#4CAF7D] text-white px-5 py-2.5 rounded font-medium hover:bg-[#3d9c6c] shadow-sm"
         >
           + New Transaction
@@ -76,7 +76,7 @@ export default async function Dashboard() {
                     </ul>
                   </div>
                 </div>
-
+                
                 <div className="text-right flex flex-col items-end">
                   <span className={`text-xs font-bold px-2.5 py-1 rounded block mb-2 ${
                     tx.status === "ACKNOWLEDGED" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
