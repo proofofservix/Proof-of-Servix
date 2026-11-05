@@ -2,6 +2,8 @@ import Navbar from "../../components/PublicNavbar"
 import ResultView from "./ResultView"
 import { Suspense } from "react"
 
+export const instant = false
+
 export default function VerifyResultPage() {
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">
