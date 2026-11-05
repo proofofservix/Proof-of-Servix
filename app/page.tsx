@@ -1,6 +1,8 @@
 import Link from "next/link"
 import Navbar from "./components/PublicNavbar"
 
+export const instant = false
+
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen bg-white font-sans text-gray-900">
@@ -59,7 +61,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* WHO IS IT FOR (3 Columns, Real Estate removed) */}
+      {/* WHO IS IT FOR */}
       <section className="py-20 px-6 bg-gray-50 border-y border-gray-100">
         <div className="max-w-6xl mx-auto text-center">
           <h2 className="text-3xl font-bold mb-12">Built for Anyone Who Needs Proof</h2>
