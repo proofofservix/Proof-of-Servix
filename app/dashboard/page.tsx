@@ -19,7 +19,6 @@ export default async function Dashboard() {
     include: { recipients: true }
   })
 
-  // Helper function to display user-friendly status names
   const getStatusDisplay = (status: string) => {
     if (status === "PENDING_PAYMENT" || status === "DISPATCHED") return "Delivered"
     if (status === "ACKNOWLEDGED") return "Acknowledged"
@@ -105,7 +104,6 @@ export default async function Dashboard() {
                 </div>
               </div>
 
-              {/* Since every transaction is now "Delivered" upon creation, we always show the links */}
               <div className="pt-4 border-t">
                 <p className="text-xs text-gray-500 mb-2 font-medium">Secure Document Links:</p>
                 
@@ -116,10 +114,10 @@ export default async function Dashboard() {
                       <input 
                         type="text" 
                         readOnly 
-                        value={`${process.env.APP_URL || "https://proofofservix.com"}/serve/${r.linkTokenHash}?vt=${r.verificationToken}`}
+                        value={`${process.env.APP_URL || "https://proofofservix.com"}/s/${r.shortLink}`}
                         className="w-full text-xs p-2 bg-gray-50 border rounded text-gray-600"
                       />
-                      <CopyLinkButton token={r.linkTokenHash || ""} />
+                      <CopyLinkButton token={r.shortLink || ""} />
                     </div>
                   ))}
                 </div>
