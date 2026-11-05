@@ -1,7 +1,7 @@
 "use client"
 import { useState, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
-import Navbar from "../../components/Navbar"
+import Navbar from "../components/PublicNavbar"
 
 function VerifyForm() {
   const searchParams = useSearchParams()

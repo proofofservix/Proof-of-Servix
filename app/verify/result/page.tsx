@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useState, Suspense } from "react"
 import { useSearchParams } from "next/navigation"
-import Navbar from "../../components/DashboardNavbar"
+import Navbar from "../../components/PublicNavbar"
 
 function ResultContent() {
   const searchParams = useSearchParams()
