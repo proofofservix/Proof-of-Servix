@@ -2,8 +2,6 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/app/lib/prisma"
 import { getPreviewUrl } from "@/app/lib/r2"
 
-export const dynamic = 'force-dynamic'
-
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
