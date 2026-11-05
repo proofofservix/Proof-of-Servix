@@ -7,7 +7,7 @@ export const instant = false
 export default function VerifyPage() {
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      <Navbar />
+      <Navbar forceLoggedOut={true} />
       <div className="flex-1 flex items-center justify-center p-4">
         <Suspense fallback={<p className="text-xl font-bold animate-pulse text-[#4CAF7D]">Loading...</p>}>
           <VerifyForm />

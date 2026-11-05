@@ -17,6 +17,9 @@ export default function DashboardNavbar({ isAdmin = false, profilePicture }: { i
           <Link href="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900">
             Dashboard
           </Link>
+          <Link href="/verify" className="text-sm font-medium text-gray-600 hover:text-gray-900">
+            Verify
+          </Link>
           {isAdmin && (
             <Link href="/admin" className="text-sm font-medium text-gray-600 hover:text-gray-900">
               Admin Panel

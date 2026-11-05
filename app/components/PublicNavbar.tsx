@@ -1,8 +1,8 @@
 import Link from "next/link"
 import { getSession } from "../lib/session"
 
-export default async function PublicNavbar() {
-  const session = await getSession()
+export default async function PublicNavbar({ forceLoggedOut = false }: { forceLoggedOut?: boolean }) {
+  const session = forceLoggedOut ? null : await getSession()
   const logoHref = session ? "/dashboard" : "/"
 
   return (
