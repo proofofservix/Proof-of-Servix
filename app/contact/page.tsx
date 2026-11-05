@@ -1,12 +1,14 @@
 import Link from "next/link"
-import Navbar from "../components/DashboardNavbar"
+import Navbar from "../components/PublicNavbar"
+
+export const instant = false
 
 export default function Contact() {
   return (
     <div className="flex flex-col min-h-screen bg-white font-sans text-gray-900">
       <Navbar />
 
-      <main className="flex-1 max-w-2xl mx-auto px-6 py-20">
+      <main className="flex-1 max-w-2xl mx-auto px-6 py-20 w-full">
         <h1 className="text-4xl font-bold mb-6">Contact Us</h1>
         <p className="text-gray-600 mb-10 text-lg">
           If you have any questions about Proof of Servix, or need support with a transaction, please reach out to us.
