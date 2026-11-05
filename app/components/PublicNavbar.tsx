@@ -1,7 +1,13 @@
 import Link from "next/link"
 import { getSession } from "../lib/session"
 
-export default async function PublicNavbar({ forceLoggedOut = false }: { forceLoggedOut?: boolean }) {
+export default async function PublicNavbar({ 
+  forceLoggedOut = false, 
+  hideVerifyLink = false 
+}: { 
+  forceLoggedOut?: boolean, 
+  hideVerifyLink?: boolean 
+}) {
   const session = forceLoggedOut ? null : await getSession()
   const logoHref = session ? "/dashboard" : "/"
 
@@ -16,7 +22,12 @@ export default async function PublicNavbar({ forceLoggedOut = false }: { forceLo
 
         <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
           <Link href="/how-it-works" className="hover:text-[#4CAF7D] transition-colors">How It Works</Link>
-          <Link href="/verify" className="hover:text-[#4CAF7D] transition-colors">Verify</Link>
+          
+          {/* Only show Verify link if hideVerifyLink is false */}
+          {!hideVerifyLink && (
+            <Link href="/verify" className="hover:text-[#4CAF7D] transition-colors">Verify</Link>
+          )}
+          
           <Link href="/contact" className="hover:text-[#4CAF7D] transition-colors">Contact Us</Link>
         </div>
 

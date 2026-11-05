@@ -1,5 +1,7 @@
-import Navbar from "../components/DashboardNavbar"
 import Link from "next/link"
+import Navbar from "../components/PublicNavbar"
+
+export const instant = false
 
 export default function HowItWorks() {
   return (
