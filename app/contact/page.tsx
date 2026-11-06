@@ -17,12 +17,12 @@ export default function Contact() {
         <div className="space-y-6 bg-gray-50 p-8 rounded-lg border">
           <div>
             <p className="font-bold text-gray-900">General Support</p>
-            <p className="text-gray-700">support@proofofservix.com</p>
+            <p className="text-gray-700">support@mails.proofofservix.com</p>
             <p className="text-sm text-gray-500 mt-1">We typically respond within 24 hours.</p>
           </div>
           <div>
             <p className="font-bold text-gray-900">Legal & Privacy</p>
-            <p className="text-gray-700">privacy@proofofservix.com</p>
+            <p className="text-gray-700">legal@mails.proofofservix.com</p>
           </div>
           <div>
             <p className="font-bold text-gray-900">Company Address</p>
