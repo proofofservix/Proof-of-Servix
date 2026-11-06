@@ -24,10 +24,6 @@ export default function Contact() {
             <p className="font-bold text-gray-900">Legal & Privacy</p>
             <p className="text-gray-700">legal@mails.proofofservix.com</p>
           </div>
-          <div>
-            <p className="font-bold text-gray-900">Company Address</p>
-            <p className="text-gray-700">ABIMARS INVENTIONS LIMITED<br />Nigeria</p>
-          </div>
         </div>
 
         <div className="mt-12">
