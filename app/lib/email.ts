@@ -1,5 +1,3 @@
-import { Notix } from "notix-js"
-
 export async function sendEmail({
   to,
   subject,
@@ -10,33 +8,45 @@ export async function sendEmail({
   html: string
 }) {
   try {
-    const apiKey = process.env.NOTIX_API_KEY
-    if (!apiKey) {
-      throw new Error("NOTIX_API_KEY is missing from environment variables")
-    }
-    
-    const notix = new Notix(apiKey)
+    const apiKey = process.env.MAILGUN_API_KEY
+    const domain = process.env.MAILGUN_DOMAIN
 
-    console.log(`Attempting to send email to: ${to}`)
-    
-    const { data, error } = await notix.emails.send({
-      // Removed the display name to prevent Amazon SES identity check failures
-      from: "noreply@mail.proofofservix.com", 
-      
-      replyTo: "support@mail.proofofservix.com", 
-      
-      to,
-      subject,
-      html,
+    if (!apiKey || !domain) {
+      throw new Error("Mailgun credentials missing from environment variables")
+    }
+
+    // Use the EU endpoint since your Mailgun domain is in the EU region
+    const url = `https://api.eu.mailgun.net/v3/${domain}/messages`
+
+    const formData = new URLSearchParams()
+    // CHANGED: Use the verified subdomain here
+    formData.append("from", "Proof of Servix <noreply@mail.proofofservix.com>")
+    formData.append("to", to)
+    formData.append("subject", subject)
+    formData.append("html", html)
+    formData.append("h:Reply-To", "support@mails.proofofservix.com")
+
+    console.log(`Attempting to send email via Mailgun to: ${to}`)
+
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: "Basic " + Buffer.from(`api:${apiKey}`).toString("base64"),
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: formData.toString(),
     })
 
-    if (error) {
-      console.error("Notix Email Error:", error)
-      return { success: false, error }
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("Mailgun Error:", errorText)
+      return { success: false, error: errorText }
     }
 
-    console.log("Email sent successfully:", data?.emailId)
-    return { success: true, id: data?.emailId }
+    const data = await response.json()
+    console.log("Email sent successfully via Mailgun:", data.id)
+    return { success: true, id: data.id }
+
   } catch (err) {
     console.error("Email sending failed:", err)
     return { success: false, error: err }
