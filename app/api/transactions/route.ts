@@ -51,53 +51,62 @@ export async function POST(req: Request) {
       const shortCode = Math.random().toString(36).substring(2, 10).toUpperCase()
       const shortLink = `${reference}-${shortCode}`
 
-      const transaction = await prisma.transaction.create({
-        data: {
-          reference,
-          senderId,
-          feeAmount: 0,
-          status: "DISPATCHED",
-          paidAt: new Date(),
-          dispatchedAt: new Date(),
-          documents: { create: documentData },
-          recipients: {
-            create: {
-              name: recipient.name,
-              organization: recipient.organization || null,
-              email: recipient.email,
-              whatsapp: recipient.phone || null,
-              shortLink: shortLink,
-              linkTokenHash: rawToken,
-              verificationToken: verificationToken,
-              linkExpiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+      // We will wrap this in a try/catch to catch the exact Prisma error
+      try {
+        const transaction = await prisma.transaction.create({
+          data: {
+            reference,
+            senderId,
+            feeAmount: 0,
+            status: "DISPATCHED",
+            paidAt: new Date(),
+            dispatchedAt: new Date(),
+            documents: { create: documentData },
+            recipients: {
+              create: {
+                name: recipient.name,
+                organization: recipient.organization || null,
+                email: recipient.email,
+                whatsapp: recipient.phone || null,
+                shortLink: shortLink,
+                linkTokenHash: rawToken,
+                verificationToken: verificationToken,
+                linkExpiresAt: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+              }
             }
           }
-        }
-      })
-      transactionIds.push(transaction.id)
+        })
+        
+        transactionIds.push(transaction.id)
 
-      const recipientLink = `${process.env.APP_URL || "https://proofofservix.com"}/s/${shortLink}`
-      
-      await sendEmail({
-        to: recipient.email,
-        subject: "You have received a document - Proof of Servix",
-        html: `
-          <div style="font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto;">
-            <h2 style="color: #4CAF7D;">Proof of Servix</h2>
-            <p>Hello ${recipient.name},</p>
-            <p>You have received a document from <strong>${senderName}</strong>.</p>
-            <p><strong>Document Title:</strong> ${documentMeta[0].title}</p>
-            <p>Click the button below to view the document:</p>
-            <a href="${recipientLink}" style="display: inline-block; background-color: #4CAF7D; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;">View Document</a>
-            <p style="color: #666; font-size: 12px; margin-top: 20px;">This link is unique to you. Do not forward it.</p>
-          </div>
-        `,
-      })
+        const recipientLink = `${process.env.APP_URL || "https://proofofservix.com"}/s/${shortLink}`
+        
+        await sendEmail({
+          to: recipient.email,
+          subject: "You have received a document - Proof of Servix",
+          html: `
+            <div style="font-family: sans-serif; padding: 20px; max-width: 500px; margin: auto;">
+              <h2 style="color: #4CAF7D;">Proof of Servix</h2>
+              <p>Hello ${recipient.name},</p>
+              <p>You have received a document from <strong>${senderName}</strong>.</p>
+              <p><strong>Document Title:</strong> ${documentMeta[0].title}</p>
+              <p>Click the button below to view the document:</p>
+              <a href="${recipientLink}" style="display: inline-block; background-color: #4CAF7D; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin-top: 10px;">View Document</a>
+              <p style="color: #666; font-size: 12px; margin-top: 20px;">This link is unique to you. Do not forward it.</p>
+            </div>
+          `,
+        })
+
+      } catch (dbError) {
+        console.error("Database save failed for recipient:", recipient.email, dbError)
+        // If one fails, we stop and throw the error so the API returns a 500
+        throw dbError
+      }
     }
 
     return NextResponse.json({ message: "Transactions dispatched", transactionIds }, { status: 201 })
   } catch (error) {
     console.error("Transaction error:", error)
-    return NextResponse.json({ error: "Something went wrong" }, { status: 500 })
+    return NextResponse.json({ error: "Failed to create transaction. Check server logs." }, { status: 500 })
   }
 }

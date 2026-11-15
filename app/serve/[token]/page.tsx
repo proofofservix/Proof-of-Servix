@@ -37,6 +37,7 @@ export default async function ServePage({
     )
   }
 
+  // Check if the vt parameter is present and matches the database
   const isValidVerificationToken = vt && vt === recipient.verificationToken
 
   if (isValidVerificationToken && recipient.status === "PENDING") {
@@ -50,7 +51,8 @@ export default async function ServePage({
     })
   }
 
-  const isVerified = isValidVerificationToken || recipient.status === "VERIFIED"
+  // ONLY auto-verify if the valid vt parameter is in the URL
+  const isVerified = isValidVerificationToken
 
   return (
     <div className="flex flex-col min-h-screen bg-gray-50">

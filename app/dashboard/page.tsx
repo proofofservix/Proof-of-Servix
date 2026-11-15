@@ -20,14 +20,10 @@ export default async function Dashboard() {
   })
 
   const getStatusDisplay = (status: string) => {
-    // For the main transaction
     if (status === "PENDING_PAYMENT" || status === "DISPATCHED") return "Delivered"
     if (status === "ACKNOWLEDGED") return "Acknowledged"
-    
-    // For the individual recipient status
     if (status === "PENDING" || status === "VERIFIED") return "Delivered"
     if (status === "ACKNOWLEDGED") return "Acknowledged"
-    
     return status.replace("_", " ")
   }
 
@@ -59,6 +55,14 @@ export default async function Dashboard() {
                 <div>
                   <p className="font-bold text-lg">{tx.reference}</p>
                   
+                  {/* DATE AND TIME ADDED HERE */}
+                  <p className="text-xs text-gray-500 mt-1 mb-2">
+                    {new Date(tx.createdAt).toLocaleString('en-NG', {
+                      dateStyle: 'medium',
+                      timeStyle: 'short'
+                    })}
+                  </p>
+
                   <div className="text-sm text-gray-500 mt-2">
                     <span className="font-medium">Recipients:</span>
                     <ul className="list-disc pl-5 mt-1 space-y-1">
@@ -115,9 +119,11 @@ export default async function Dashboard() {
                 
                 <div className="space-y-2">
                   {tx.recipients.map((r) => {
-                    const linkToCopy = r.shortLink 
+                    const displayLink = r.shortLink 
                       ? `${process.env.APP_URL || "https://proofofservix.com"}/s/${r.shortLink}`
-                      : `${process.env.APP_URL || "https://proofofservix.com"}/serve/${r.linkTokenHash}?vt=${r.verificationToken}`
+                      : `${process.env.APP_URL || "https://proofofservix.com"}/serve/${r.linkTokenHash}`
+
+                    const linkToCopy = `${process.env.APP_URL || "https://proofofservix.com"}/serve/${r.linkTokenHash}`
 
                     return (
                       <div key={r.id} className="flex items-center gap-2">
@@ -125,13 +131,10 @@ export default async function Dashboard() {
                         <input 
                           type="text" 
                           readOnly 
-                          value={linkToCopy}
+                          value={displayLink}
                           className="w-full text-xs p-2 bg-gray-50 border rounded text-gray-600"
                         />
-                        <CopyLinkButton 
-                          shortLink={r.shortLink} 
-                          longLink={`${process.env.APP_URL || "https://proofofservix.com"}/serve/${r.linkTokenHash}?vt=${r.verificationToken}`} 
-                        />
+                        <CopyLinkButton link={linkToCopy} />
                       </div>
                     )
                   })}
