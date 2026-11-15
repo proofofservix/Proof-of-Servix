@@ -29,6 +29,7 @@ export default async function SettingsPage() {
         userId={session.userId} 
         initialName={user.name || ""}
         initialOrg={user.organization || ""} 
+        initialEmail={user.email || ""}
         initialPic={user.profilePicture || null}
         hasPassword={!!user.passwordHash}
       />

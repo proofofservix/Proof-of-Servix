@@ -6,12 +6,14 @@ export default function ProfileSettings({
   userId, 
   initialName, 
   initialOrg, 
+  initialEmail,
   initialPic,
   hasPassword
 }: { 
   userId: string, 
   initialName: string, 
   initialOrg: string, 
+  initialEmail: string,
   initialPic: string | null,
   hasPassword: boolean
 }) {
@@ -112,6 +114,18 @@ export default function ProfileSettings({
         </div>
 
         <div>
+          <label className="text-sm font-semibold block mb-1">Email Address</label>
+          <input 
+            type="email" 
+            value={initialEmail} 
+            readOnly
+            disabled
+            className="w-full p-2 border rounded bg-gray-100 text-gray-500 cursor-not-allowed"
+          />
+          <p className="text-xs text-gray-500 mt-1">Email cannot be changed.</p>
+        </div>
+
+        <div>
           <label className="text-sm font-semibold block mb-1">Organization / Chambers</label>
           <input 
             type="text" 
@@ -123,13 +137,10 @@ export default function ProfileSettings({
           <p className="text-xs text-gray-500 mt-1">This will appear on your SSR and CSA documents.</p>
         </div>
 
-        <div className="pt-4 border-t">
-          <h3 className="text-sm font-semibold mb-4 text-gray-800">
-            {hasPassword ? "Change Password" : "Set a Password"}
-          </h3>
-          <div className="space-y-3">
-            {/* Only show current password if they already have one */}
-            {hasPassword && (
+        {hasPassword ? (
+          <div className="pt-4 border-t">
+            <h3 className="text-sm font-semibold mb-4 text-gray-800">Change Password</h3>
+            <div className="space-y-3">
               <input 
                 type="password" 
                 placeholder="Current Password" 
@@ -137,17 +148,20 @@ export default function ProfileSettings({
                 onChange={e => setCurrentPassword(e.target.value)}
                 className="w-full p-2 border rounded"
               />
-            )}
-            
-            <input 
-              type="password" 
-              placeholder={hasPassword ? "New Password (leave blank to keep current)" : "Create a password for email login"} 
-              value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
-              className="w-full p-2 border rounded"
-            />
+              <input 
+                type="password" 
+                placeholder="New Password (leave blank to keep current)" 
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                className="w-full p-2 border rounded"
+              />
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="pt-4 border-t text-sm text-gray-500">
+            You signed up with Google. Password management is handled by your Google account.
+          </div>
+        )}
 
         <button 
           onClick={handleSave} 

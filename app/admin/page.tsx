@@ -1,4 +1,5 @@
 import { prisma } from "../lib/prisma"
+import Link from "next/link"
 
 export const instant = false
 
@@ -10,17 +11,6 @@ export default async function AdminDashboard() {
   const acknowledgedTransactions = await prisma.transaction.count({
     where: { status: "ACKNOWLEDGED" }
   })
-
-  const servicePayments = await prisma.payment.aggregate({
-    where: { purpose: "SERVICE", status: "SUCCESSFUL" },
-    _sum: { amount: true }
-  })
-  const verificationPayments = await prisma.payment.aggregate({
-    where: { purpose: "VERIFICATION", status: "SUCCESSFUL" },
-    _sum: { amount: true }
-  })
-
-  const totalRevenue = ((servicePayments._sum.amount || 0) + (verificationPayments._sum.amount || 0)) / 100
 
   const recentTransactions = await prisma.transaction.findMany({
     orderBy: { createdAt: "desc" },
@@ -35,14 +25,10 @@ export default async function AdminDashboard() {
         <p className="text-gray-500">Platform overview for ABIMARS INVENTIONS LIMITED</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <p className="text-sm text-gray-500 font-medium">Total Users</p>
           <p className="text-3xl font-bold text-gray-900">{totalUsers}</p>
-        </div>
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <p className="text-sm text-gray-500 font-medium">Total Revenue (₦)</p>
-          <p className="text-3xl font-bold text-green-600">₦{totalRevenue.toLocaleString()}</p>
         </div>
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <p className="text-sm text-gray-500 font-medium">Total Sent</p>
@@ -73,7 +59,9 @@ export default async function AdminDashboard() {
               <tr key={tx.id} className="border-b last:border-0 hover:bg-gray-50">
                 <td className="p-4 font-mono text-sm">{tx.reference}</td>
                 <td className="p-4 text-sm">
-                  <p className="font-medium">{tx.sender.name}</p>
+                  <Link href={`/admin/users/${tx.sender.id}`} className="font-medium text-blue-600 hover:underline">
+                    {tx.sender.name}
+                  </Link>
                   <p className="text-gray-500 text-xs">{tx.sender.email}</p>
                 </td>
                 <td className="p-4 text-sm">

@@ -1,0 +1,123 @@
+import { prisma } from "@/app/lib/prisma"
+import Link from "next/link"
+import { notFound } from "next/navigation"
+
+export const instant = false
+
+export default async function UserDetails({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+
+  const user = await prisma.user.findUnique({
+    where: { id },
+    include: {
+      transactions: {
+        orderBy: { createdAt: "desc" },
+        include: { recipients: true }
+      }
+    }
+  })
+
+  if (!user) {
+    notFound()
+  }
+
+  const getStatusDisplay = (status: string) => {
+    if (status === "PENDING_PAYMENT" || status === "DISPATCHED") return "Delivered"
+    if (status === "ACKNOWLEDGED") return "Acknowledged"
+    if (status === "PENDING" || status === "VERIFIED") return "Delivered"
+    if (status === "ACKNOWLEDGED") return "Acknowledged"
+    return status.replace("_", " ")
+  }
+
+  return (
+    <div className="p-8 max-w-4xl mx-auto">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">User Dashboard</h1>
+          <p className="text-gray-500">Viewing: {user.name} ({user.email})</p>
+        </div>
+        <Link 
+          href="/admin"
+          className="text-sm font-medium text-gray-500 hover:text-gray-900"
+        >
+          &larr; Back to Admin
+        </Link>
+      </div>
+
+      <div className="space-y-4">
+        {user.transactions.length === 0 ? (
+          <div className="border-2 border-dashed border-gray-200 rounded-lg p-12 text-center text-gray-500 bg-white">
+            <p>This user has no transactions yet.</p>
+          </div>
+        ) : (
+          user.transactions.map((tx) => (
+            <div key={tx.id} className="bg-white border rounded-lg p-5 flex flex-col gap-4 shadow-sm">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-bold text-lg">{tx.reference}</p>
+                  
+                  <p className="text-xs text-gray-500 mt-1 mb-2">
+                    {new Date(tx.createdAt).toLocaleString('en-NG', {
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
+                      timeZone: 'Africa/Lagos'
+                    })}
+                  </p>
+
+                  <div className="text-sm text-gray-500 mt-2">
+                    <span className="font-medium">Recipients:</span>
+                    <ul className="list-disc pl-5 mt-1 space-y-1">
+                      {tx.recipients.map((r) => (
+                        <li key={r.id}>
+                          {r.name} ({r.email}) 
+                          <span className={`ml-2 text-xs font-bold ${
+                            r.status === "ACKNOWLEDGED" ? "text-green-600" : 
+                            r.status === "VERIFIED" ? "text-blue-600" : 
+                            "text-gray-600"
+                          }`}>
+                            [{getStatusDisplay(r.status)}]
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="text-right flex flex-col items-end">
+                  <span className={`text-xs font-bold px-2.5 py-1 rounded block mb-2 ${
+                    tx.status === "ACKNOWLEDGED" ? "bg-green-100 text-green-800" : 
+                    "bg-gray-100 text-gray-800"
+                  }`}>
+                    {getStatusDisplay(tx.status)}
+                  </span>
+                  
+                  <div className="flex gap-3 mt-1">
+                    <a 
+                      href={`/api/transactions/${tx.id}/ssr`} 
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm text-[#4CAF7D] hover:underline font-medium"
+                    >
+                      View SSR
+                    </a>
+
+                    {tx.status === "ACKNOWLEDGED" && (
+                      <a 
+                        href={`/api/transactions/${tx.id}/csa`} 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm text-green-700 hover:underline font-medium"
+                      >
+                        View CSA
+                      </a>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )
+}

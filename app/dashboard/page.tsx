@@ -55,10 +55,12 @@ export default async function Dashboard() {
                 <div>
                   <p className="font-bold text-lg">{tx.reference}</p>
                   
+                  {/* Time updated to en-NG and AM/PM */}
                   <p className="text-xs text-gray-500 mt-1 mb-2">
                     {new Date(tx.createdAt).toLocaleString('en-NG', {
                       dateStyle: 'medium',
-                      timeStyle: 'short'
+                      timeStyle: 'short',
+                      timeZone: 'Africa/Lagos'
                     })}
                   </p>
 
@@ -118,7 +120,6 @@ export default async function Dashboard() {
                 
                 <div className="space-y-2">
                   {tx.recipients.map((r) => {
-                    // Both the display and copy are now the long link (no vt, forces OTP)
                     const longLink = `${process.env.APP_URL || "https://proofofservix.com"}/serve/${r.linkTokenHash}`
 
                     return (
