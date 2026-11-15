@@ -33,7 +33,7 @@ export default async function UserDetails({ params }: { params: Promise<{ id: st
     <div className="p-8 max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-8">
         <div>
-          <h1 className="text-3xl font-bold">User Dashboard</h1>
+          <h1 className="text-3xl font-bold">User Profile</h1>
           <p className="text-gray-500">Viewing: {user.name} ({user.email})</p>
         </div>
         <Link 
@@ -44,7 +44,63 @@ export default async function UserDetails({ params }: { params: Promise<{ id: st
         </Link>
       </div>
 
+      {/* PROFILE DETAILS SECTION */}
+      <div className="bg-white border rounded-lg p-6 shadow-sm mb-8">
+        <h2 className="text-xl font-bold mb-6 border-b pb-2">Profile Details</h2>
+        
+        <div className="space-y-4 max-w-xl">
+          <div className="flex items-center gap-4 mb-4">
+            {user.profilePicture ? (
+              <img src={user.profilePicture} alt="Profile" className="w-16 h-16 rounded-full object-cover border" />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-gray-100 border flex items-center justify-center text-gray-400 text-xs">
+                No Image
+              </div>
+            )}
+            <div>
+              <p className="text-xs text-gray-500 font-medium">Profile Picture</p>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-500 font-medium">Full Name</p>
+            <p className="text-gray-900 font-semibold">{user.name}</p>
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-500 font-medium">Email Address</p>
+            <p className="text-gray-900 font-semibold">{user.email}</p>
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-500 font-medium">Organization / Chambers</p>
+            <p className="text-gray-900 font-semibold">{user.organization || "NIL"}</p>
+          </div>
+
+          <div>
+            <p className="text-xs text-gray-500 font-medium">Account Role</p>
+            <p className="text-gray-900 font-semibold">
+              {user.isAdmin ? "Admin" : "Regular User"}
+            </p>
+          </div>
+          
+          <div>
+            <p className="text-xs text-gray-500 font-medium">Date Joined</p>
+            <p className="text-gray-900 font-semibold">
+              {new Date(user.createdAt).toLocaleString('en-NG', {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+                timeZone: 'Africa/Lagos'
+              })}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* TRANSACTIONS SECTION */}
       <div className="space-y-4">
+        <h2 className="text-xl font-bold mb-4">Transaction History</h2>
+        
         {user.transactions.length === 0 ? (
           <div className="border-2 border-dashed border-gray-200 rounded-lg p-12 text-center text-gray-500 bg-white">
             <p>This user has no transactions yet.</p>

@@ -59,6 +59,7 @@ export default async function AdminDashboard() {
               <tr key={tx.id} className="border-b last:border-0 hover:bg-gray-50">
                 <td className="p-4 font-mono text-sm">{tx.reference}</td>
                 <td className="p-4 text-sm">
+                  {/* This is the clickable link to the user's profile */}
                   <Link href={`/admin/users/${tx.sender.id}`} className="font-medium text-blue-600 hover:underline">
                     {tx.sender.name}
                   </Link>
