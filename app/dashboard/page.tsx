@@ -55,7 +55,6 @@ export default async function Dashboard() {
                 <div>
                   <p className="font-bold text-lg">{tx.reference}</p>
                   
-                  {/* DATE AND TIME ADDED HERE */}
                   <p className="text-xs text-gray-500 mt-1 mb-2">
                     {new Date(tx.createdAt).toLocaleString('en-NG', {
                       dateStyle: 'medium',
@@ -115,15 +114,12 @@ export default async function Dashboard() {
               </div>
 
               <div className="pt-4 border-t">
-                <p className="text-xs text-gray-500 mb-2 font-medium">Secure Document Links:</p>
+                <p className="text-xs text-gray-500 mb-2 font-medium">Secure Document Links (Requires OTP):</p>
                 
                 <div className="space-y-2">
                   {tx.recipients.map((r) => {
-                    const displayLink = r.shortLink 
-                      ? `${process.env.APP_URL || "https://proofofservix.com"}/s/${r.shortLink}`
-                      : `${process.env.APP_URL || "https://proofofservix.com"}/serve/${r.linkTokenHash}`
-
-                    const linkToCopy = `${process.env.APP_URL || "https://proofofservix.com"}/serve/${r.linkTokenHash}`
+                    // Both the display and copy are now the long link (no vt, forces OTP)
+                    const longLink = `${process.env.APP_URL || "https://proofofservix.com"}/serve/${r.linkTokenHash}`
 
                     return (
                       <div key={r.id} className="flex items-center gap-2">
@@ -131,10 +127,10 @@ export default async function Dashboard() {
                         <input 
                           type="text" 
                           readOnly 
-                          value={displayLink}
+                          value={longLink}
                           className="w-full text-xs p-2 bg-gray-50 border rounded text-gray-600"
                         />
-                        <CopyLinkButton link={linkToCopy} />
+                        <CopyLinkButton link={longLink} />
                       </div>
                     )
                   })}
