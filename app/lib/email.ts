@@ -20,10 +20,10 @@ export async function sendEmail({
     console.log(`Attempting to send email to: ${to}`)
     
     const { data, error } = await notix.emails.send({
-      // Notice there is NO space between the name and the <
-      from: "Proof of Servix<noreply@mail.proofofservix.com>", 
+      // Removed the display name to prevent Amazon SES identity check failures
+      from: "noreply@mail.proofofservix.com", 
       
-      replyTo: "support@proofofservix.com", 
+      replyTo: "support@mail.proofofservix.com", 
       
       to,
       subject,
