@@ -37,8 +37,8 @@ export default async function ServePage({
     )
   }
 
-  // Check if the vt parameter is present and matches the database
-  const isValidVerificationToken = vt && vt === recipient.verificationToken
+  // Check if the vt parameter is present and matches the database (cast to boolean)
+  const isValidVerificationToken = !!vt && vt === recipient.verificationToken
 
   if (isValidVerificationToken && recipient.status === "PENDING") {
     await prisma.transactionRecipient.update({
