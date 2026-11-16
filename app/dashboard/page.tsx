@@ -55,12 +55,12 @@ export default async function Dashboard() {
                 <div>
                   <p className="font-bold text-lg">{tx.reference}</p>
                   
-                  {/* Time updated to en-NG and AM/PM */}
                   <p className="text-xs text-gray-500 mt-1 mb-2">
                     {new Date(tx.createdAt).toLocaleString('en-NG', {
                       dateStyle: 'medium',
                       timeStyle: 'short',
-                      timeZone: 'Africa/Lagos'
+                      timeZone: 'Africa/Lagos',
+                      hour12: true
                     })}
                   </p>
 

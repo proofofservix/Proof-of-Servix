@@ -24,7 +24,12 @@ export default function ProfileSettings({
   
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   
+  const [showCurrent, setShowCurrent] = useState(false)
+  const [showNew, setShowNew] = useState(false)
+  const [showConfirm, setShowConfirm] = useState(false)
+
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState({ type: "", text: "" })
 
@@ -44,8 +49,13 @@ export default function ProfileSettings({
   }
 
   const handleSave = async () => {
-    setSaving(true)
     setMessage({ type: "", text: "" })
+
+    if (newPassword && newPassword !== confirmPassword) {
+      return setMessage({ type: "error", text: "Passwords do not match" })
+    }
+
+    setSaving(true)
 
     const res = await fetch("/api/user/update", {
       method: "POST",
@@ -67,6 +77,7 @@ export default function ProfileSettings({
       setMessage({ type: "success", text: "Profile updated successfully!" })
       setCurrentPassword("")
       setNewPassword("")
+      setConfirmPassword("")
       router.refresh()
     } else {
       setMessage({ type: "error", text: data.error || "Failed to update profile" })
@@ -142,24 +153,60 @@ export default function ProfileSettings({
             {hasPassword ? "Change Password" : "Set a Password"}
           </h3>
           <div className="space-y-3">
-            {/* Only show current password field if they already have one */}
             {hasPassword && (
-              <input 
-                type="password" 
-                placeholder="Current Password" 
-                value={currentPassword}
-                onChange={e => setCurrentPassword(e.target.value)}
-                className="w-full p-2 border rounded"
-              />
+              <div className="relative">
+                <input 
+                  type={showCurrent ? "text" : "password"} 
+                  placeholder="Current Password" 
+                  value={currentPassword}
+                  onChange={e => setCurrentPassword(e.target.value)}
+                  className="w-full p-2 border rounded pr-10"
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowCurrent(!showCurrent)}
+                  className="absolute right-2 top-2 text-xs text-gray-500"
+                >
+                  {showCurrent ? "Hide" : "Show"}
+                </button>
+              </div>
             )}
             
-            <input 
-              type="password" 
-              placeholder={hasPassword ? "New Password (leave blank to keep current)" : "Create a password for email login"} 
-              value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
-              className="w-full p-2 border rounded"
-            />
+            <div className="relative">
+              <input 
+                type={showNew ? "text" : "password"} 
+                placeholder={hasPassword ? "New Password" : "Create a password for manual login"} 
+                value={newPassword}
+                onChange={e => setNewPassword(e.target.value)}
+                className="w-full p-2 border rounded pr-10"
+              />
+              <button 
+                type="button"
+                onClick={() => setShowNew(!showNew)}
+                className="absolute right-2 top-2 text-xs text-gray-500"
+              >
+                {showNew ? "Hide" : "Show"}
+              </button>
+            </div>
+
+            {newPassword && (
+              <div className="relative">
+                <input 
+                  type={showConfirm ? "text" : "password"} 
+                  placeholder="Confirm Password" 
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  className="w-full p-2 border rounded pr-10"
+                />
+                <button 
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-2 top-2 text-xs text-gray-500"
+                >
+                  {showConfirm ? "Hide" : "Show"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
