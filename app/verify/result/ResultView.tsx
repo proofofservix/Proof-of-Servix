@@ -111,10 +111,6 @@ export default function ResultView() {
                 <p className="text-sm text-gray-500">Document Title</p>
                 <p className="font-bold text-gray-900">{data.documentTitle}</p>
               </div>
-              <div>
-                <p className="text-sm text-gray-500">Cryptographic Hash (SHA-256)</p>
-                <p className="font-mono text-xs break-all text-gray-700">{data.sha256}</p>
-              </div>
             </div>
 
             <div className="bg-gray-50 p-4 rounded border space-y-3">
