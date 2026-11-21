@@ -1,6 +1,8 @@
 import { prisma } from "@/app/lib/prisma"
 import Link from "next/link"
 import SearchBar from "@/app/components/SearchBar"
+import RoleButton from "./RoleButton"
+import { getSession } from "@/app/lib/session"
 
 export const instant = false
 
@@ -12,6 +14,12 @@ export default async function UsersDirectory({
   const { search, sort } = await searchParams
   const searchTerm = search || ""
   
+  // Get current user session
+  const session = await getSession()
+  const currentUser = session?.userId 
+    ? await prisma.user.findUnique({ where: { id: session.userId } }) 
+    : null
+
   // Determine sort order
   let orderBy = {}
   if (sort === "name") {
@@ -91,18 +99,29 @@ export default async function UsersDirectory({
                     <td className="p-4 text-sm text-gray-500">{user.organization || "N/A"}</td>
                     <td className="p-4">
                       <span className={`text-xs font-bold px-2 py-1 rounded ${
-                        user.isAdmin ? "bg-purple-100 text-purple-800" : "bg-gray-100 text-gray-800"
+                        user.isSuperAdmin ? "bg-purple-100 text-purple-800" :
+                        user.isAdmin ? "bg-blue-100 text-blue-800" : 
+                        "bg-gray-100 text-gray-800"
                       }`}>
-                        {user.isAdmin ? "Admin" : "User"}
+                        {user.isSuperAdmin ? "Super Admin" : user.isAdmin ? "Admin" : "User"}
                       </span>
                     </td>
                     <td className="p-4 text-sm text-gray-500">
                       {new Date(user.createdAt).toLocaleDateString()}
                     </td>
-                    <td className="p-4">
+                    <td className="p-4 flex gap-2 items-center">
                       <Link href={`/admin/users/${user.id}`} className="text-sm text-blue-600 hover:underline">
-                        View Profile
+                        Profile
                       </Link>
+
+                      {/* ONLY Super Admins see the toggle button */}
+                      {currentUser?.isSuperAdmin && (
+                        <RoleButton 
+                          targetUserId={user.id} 
+                          isAdmin={user.isAdmin} 
+                          isSuperAdmin={user.isSuperAdmin} 
+                        />
+                      )}
                     </td>
                   </tr>
                 ))
