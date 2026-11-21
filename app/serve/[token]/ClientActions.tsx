@@ -5,13 +5,13 @@ export default function ClientActions({
   token, 
   hasEmail, 
   hasPhone, 
-  documentId,
+  documents,
   isVerified = false
 }: { 
   token: string, 
   hasEmail: boolean, 
   hasPhone: boolean, 
-  documentId: string,
+  documents: { id: string, title: string }[],
   isVerified?: boolean
 }) {
   const [step, setStep] = useState<"start" | "choose" | "otp" | "verified">(
@@ -65,7 +65,11 @@ export default function ClientActions({
       body: JSON.stringify({ token })
     })
     setLoading(false)
-    window.open(`/api/documents/${documentId}`, "_blank")
+    // Open the first document by default, or loop through them. 
+    // For simplicity, we open the first one, but they can download all from the previous page.
+    if (documents.length > 0) {
+      window.open(`/api/documents/${documents[0].id}`, "_blank")
+    }
     window.location.reload() 
   }
 
@@ -77,7 +81,7 @@ export default function ClientActions({
         </div>
 
         <div className="text-left bg-gray-50 p-4 rounded border">
-          <p className="font-semibold mb-3">Access Document</p>
+          <p className="font-semibold mb-3">Access Documents</p>
           
           <label className="flex items-start gap-3 cursor-pointer">
             <input 
@@ -87,7 +91,7 @@ export default function ClientActions({
               onChange={(e) => setHasConsented(e.target.checked)}
             />
             <span className="text-sm text-gray-600">
-              I confirm that I have accessed and taken delivery of this document. I understand this does not constitute agreement with its contents.
+              I confirm that I have accessed and taken delivery of these documents. I understand this does not constitute agreement with their contents.
             </span>
           </label>
 
@@ -96,7 +100,7 @@ export default function ClientActions({
             disabled={!hasConsented || loading}
             className="mt-4 w-full bg-[#4CAF7D] text-white p-3 rounded font-bold hover:bg-[#3d9c6c] disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
-            {loading ? "Processing..." : "Access & Download"}
+            {loading ? "Processing..." : "Acknowledge & Download All"}
           </button>
         </div>
       </div>

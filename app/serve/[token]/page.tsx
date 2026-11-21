@@ -52,7 +52,6 @@ export default async function ServePage({
     })
   }
 
-  // ONLY auto-verify if the valid vt parameter is in the URL
   const isVerified = isValidVerificationToken
 
   return (
@@ -73,9 +72,16 @@ export default async function ServePage({
               <p className="text-sm text-gray-500">{recipient.transaction.sender.organization || "NIL"}</p>
             </div>
             
-            <div className="bg-gray-50 p-4 rounded border">
-              <p className="font-bold text-sm mb-1">Document:</p>
-              <p>{recipient.transaction.documents[0]?.title}</p>
+            {/* LOOP THROUGH ALL DOCUMENTS */}
+            <div className="bg-gray-50 p-4 rounded border space-y-3">
+              <p className="font-bold text-sm">Documents included in this delivery:</p>
+              <ul className="list-disc pl-5 space-y-1">
+                {recipient.transaction.documents.map((doc) => (
+                  <li key={doc.id} className="text-gray-700 text-sm">
+                    {doc.title} <span className="text-gray-400 text-xs">({doc.filename})</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
 
@@ -95,21 +101,26 @@ export default async function ServePage({
 
           {recipient.status === "ACKNOWLEDGED" ? (
             <div className="bg-green-50 text-green-700 p-4 rounded border border-green-200 text-center">
-              <p className="font-bold">This document has already been accessed and acknowledged.</p>
-              <a 
-                href={`/api/documents/${recipient.transaction.documents[0]?.id}`} 
-                target="_blank"
-                className="block w-full mt-4 bg-gray-100 text-gray-800 border border-gray-300 p-3 rounded font-bold hover:bg-gray-200"
-              >
-                Download Document Again
-              </a>
+              <p className="font-bold">This document bundle has already been accessed and acknowledged.</p>
+              <div className="flex flex-col gap-2 mt-4">
+                {recipient.transaction.documents.map((doc) => (
+                  <a 
+                    key={doc.id}
+                    href={`/api/documents/${doc.id}`} 
+                    target="_blank"
+                    className="block w-full bg-gray-100 text-gray-800 border border-gray-300 p-2 rounded font-bold hover:bg-gray-200 text-sm"
+                  >
+                    Download: {doc.title}
+                  </a>
+                ))}
+              </div>
             </div>
           ) : (
             <ClientActions 
               token={token} 
               hasEmail={!!recipient.email} 
               hasPhone={!!recipient.whatsapp}
-              documentId={recipient.transaction.documents[0]?.id || ""} 
+              documents={recipient.transaction.documents.map(d => ({ id: d.id, title: d.title }))}
               isVerified={isVerified}
             />
           )}
