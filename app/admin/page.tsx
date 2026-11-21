@@ -22,13 +22,15 @@ export default async function AdminDashboard({
     where: { status: "ACKNOWLEDGED" }
   })
 
-  // Fetch filtered transactions
+  // Fetch filtered transactions (Now searches recipients too)
   const recentTransactions = await prisma.transaction.findMany({
     where: {
       OR: [
         { reference: { contains: searchTerm, mode: "insensitive" } },
         { sender: { name: { contains: searchTerm, mode: "insensitive" } } },
-        { sender: { email: { contains: searchTerm, mode: "insensitive" } } }
+        { sender: { email: { contains: searchTerm, mode: "insensitive" } } },
+        { recipients: { some: { name: { contains: searchTerm, mode: "insensitive" } } } },
+        { recipients: { some: { email: { contains: searchTerm, mode: "insensitive" } } } }
       ]
     },
     orderBy: { createdAt: sortOrder },
@@ -79,7 +81,7 @@ export default async function AdminDashboard({
         </div>
         <div className="p-6">
           <SearchBar 
-            placeholder="Search by reference, sender name or email..." 
+            placeholder="Search by reference, sender, or recipient..." 
             sortOptions={sortOptions} 
           />
           

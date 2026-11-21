@@ -18,11 +18,12 @@ model User {
   organization    String?
   profilePicture  String?   @db.Text
   isAdmin         Boolean   @default(false)
-  
+  isSuperAdmin    Boolean   @default(false)
+
   emailVerifiedAt    DateTime?
   verificationToken  String?   @unique
   verificationExpiry DateTime?
-  
+
   resetToken       String?   @unique
   resetTokenExpiry DateTime?
 
@@ -74,13 +75,13 @@ model Document {
   transactionId String
   transaction   Transaction @relation(fields: [transactionId], references: [id])
 
-  title      String
-  filename   String
-  mimeType   String
-  sizeBytes  Int
-  storageKey String      @db.Text
-  sha256     String
-  isMainDocument Boolean   @default(false)
+  title         String
+  filename      String
+  mimeType      String
+  sizeBytes     Int
+  storageKey    String      @db.Text
+  sha256        String
+  isMainDocument Boolean    @default(false)
 
   createdAt DateTime @default(now())
 }
@@ -106,10 +107,10 @@ model TransactionRecipient {
   email        String?
   whatsapp     String?
 
-  shortLink          String?   @unique
-  linkTokenHash      String    @unique
-  verificationToken  String?   @unique
-  linkExpiresAt      DateTime
+  shortLink         String? @unique
+  linkTokenHash     String  @unique
+  verificationToken String? @unique
+  linkExpiresAt     DateTime
 
   status RecipientStatus @default(PENDING)
 
@@ -118,9 +119,9 @@ model TransactionRecipient {
   acknowledgedAt     DateTime?
   refusedAt          DateTime?
   downloadedAt       DateTime?
-  
-  accessIp       String?
-  accessDevice   String?
+
+  accessIp     String?
+  accessDevice String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
