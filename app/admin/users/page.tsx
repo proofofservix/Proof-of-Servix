@@ -1,6 +1,7 @@
 import { prisma } from "@/app/lib/prisma"
 import Link from "next/link"
 import SearchBar from "@/app/components/SearchBar"
+import { getSession } from "@/app/lib/session"
 
 export const instant = false
 
@@ -12,6 +13,12 @@ export default async function UsersDirectory({
   const { search, sort } = await searchParams
   const searchTerm = search || ""
   
+  // 1. Fetch the current logged-in user to check if they are Super Admin
+  const session = await getSession()
+  const currentUser = session?.userId 
+    ? await prisma.user.findUnique({ where: { id: session.userId } }) 
+    : null
+
   let orderBy = {}
   if (sort === "name") {
     orderBy = { name: "asc" }
@@ -47,12 +54,17 @@ export default async function UsersDirectory({
           <p className="text-gray-500">View and manage all registered users</p>
         </div>
         <div className="flex gap-4">
-          <Link 
-            href="/admin/manage-admins" 
-            className="bg-gray-800 text-white px-4 py-2 rounded font-bold hover:bg-gray-700"
-          >
-            Manage Admin Roles
-          </Link>
+          
+          {/* 2. ONLY show the Manage Admin button if currentUser is Super Admin */}
+          {currentUser?.isSuperAdmin && (
+            <Link 
+              href="/admin/manage-admins" 
+              className="bg-gray-800 text-white px-4 py-2 rounded font-bold hover:bg-gray-700"
+            >
+              Manage Admin Roles
+            </Link>
+          )}
+
           <Link 
             href="/admin" 
             className="text-sm font-medium text-gray-500 hover:text-gray-900 self-center"
