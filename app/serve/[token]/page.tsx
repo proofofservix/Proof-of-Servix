@@ -38,7 +38,6 @@ export default async function ServePage({
     )
   }
 
-  // Check if the vt parameter is present and matches the database
   const isValidVerificationToken = !!vt && vt === recipient.verificationToken
 
   if (isValidVerificationToken && recipient.status === "PENDING") {
@@ -72,7 +71,6 @@ export default async function ServePage({
               <p className="text-sm text-gray-500">{recipient.transaction.sender.organization || "NIL"}</p>
             </div>
             
-            {/* LOOP THROUGH ALL DOCUMENTS */}
             <div className="bg-gray-50 p-4 rounded border space-y-3">
               <p className="font-bold text-sm">Documents included in this delivery:</p>
               <ul className="list-disc pl-5 space-y-1">
@@ -83,20 +81,6 @@ export default async function ServePage({
                 ))}
               </ul>
             </div>
-          </div>
-
-          {/* PROMO BANNER */}
-          <div className="bg-gradient-to-r from-[#4CAF7D] to-[#3d9c6c] p-6 rounded-lg mb-8 text-white shadow-md">
-            <h3 className="text-lg font-bold mb-2">Need to serve your own documents?</h3>
-            <p className="text-sm mb-4 text-white/90">
-              Join Proof of Servix and generate legally defensible proof of delivery for free.
-            </p>
-            <Link 
-              href="/register" 
-              className="inline-block bg-white text-[#4CAF7D] px-4 py-2 rounded font-bold text-sm hover:bg-gray-100 transition-colors"
-            >
-              Get Started for Free
-            </Link>
           </div>
 
           {recipient.status === "ACKNOWLEDGED" ? (
@@ -124,6 +108,22 @@ export default async function ServePage({
               isVerified={isVerified}
             />
           )}
+
+          {/* PROMO BANNER - Moved to the bottom, after the main action */}
+          <div className="mt-10 pt-8 border-t text-center">
+            <p className="text-sm font-semibold text-gray-700 mb-2">
+              Need to serve your own documents?
+            </p>
+            <p className="text-xs text-gray-500 mb-4">
+              Join Proof of Servix and generate legally defensible proof of delivery for free.
+            </p>
+            <Link 
+              href="/register" 
+              className="inline-block bg-gray-100 text-[#4CAF7D] px-4 py-2 rounded font-bold text-sm hover:bg-gray-200 transition-colors border border-gray-200"
+            >
+              Get Started for Free
+            </Link>
+          </div>
 
         </div>
       </div>
