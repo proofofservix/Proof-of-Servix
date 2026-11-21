@@ -1,0 +1,116 @@
+import { prisma } from "@/app/lib/prisma"
+import Link from "next/link"
+import SearchBar from "@/app/components/SearchBar"
+
+export const instant = false
+
+export default async function UsersDirectory({ 
+  searchParams 
+}: { 
+  searchParams: Promise<{ search?: string, sort?: string }> 
+}) {
+  const { search, sort } = await searchParams
+  const searchTerm = search || ""
+  
+  // Determine sort order
+  let orderBy = {}
+  if (sort === "name") {
+    orderBy = { name: "asc" }
+  } else if (sort === "oldest") {
+    orderBy = { createdAt: "asc" }
+  } else {
+    orderBy = { createdAt: "desc" } // Default: newest first
+  }
+
+  const users = await prisma.user.findMany({
+    where: {
+      OR: [
+        { name: { contains: searchTerm, mode: "insensitive" } },
+        { email: { contains: searchTerm, mode: "insensitive" } },
+        { organization: { contains: searchTerm, mode: "insensitive" } }
+      ]
+    },
+    orderBy,
+    take: 100 // Limit to 100 for performance
+  })
+
+  const sortOptions = [
+    { label: "Newest Joined", value: "newest" },
+    { label: "Oldest Joined", value: "oldest" },
+    { label: "Name (A-Z)", value: "name" }
+  ]
+
+  return (
+    <div className="p-8 max-w-6xl mx-auto">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">User Directory</h1>
+          <p className="text-gray-500">View and manage all registered users</p>
+        </div>
+        <Link 
+          href="/admin" 
+          className="text-sm font-medium text-gray-500 hover:text-gray-900"
+        >
+          &larr; Back to Dashboard
+        </Link>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+        <div className="p-6 border-b">
+          <h2 className="text-lg font-bold">All Users ({users.length})</h2>
+        </div>
+        <div className="p-6">
+          <SearchBar 
+            placeholder="Search by name, email, or organization..." 
+            sortOptions={sortOptions} 
+          />
+
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 text-gray-600 text-sm">
+                <th className="p-4 font-semibold">Name</th>
+                <th className="p-4 font-semibold">Email</th>
+                <th className="p-4 font-semibold">Organization</th>
+                <th className="p-4 font-semibold">Role</th>
+                <th className="p-4 font-semibold">Joined</th>
+                <th className="p-4 font-semibold">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="p-4 text-center text-gray-500">
+                    No users found matching your search.
+                  </td>
+                </tr>
+              ) : (
+                users.map((user) => (
+                  <tr key={user.id} className="border-b last:border-0 hover:bg-gray-50">
+                    <td className="p-4 text-sm font-medium">{user.name}</td>
+                    <td className="p-4 text-sm">{user.email}</td>
+                    <td className="p-4 text-sm text-gray-500">{user.organization || "N/A"}</td>
+                    <td className="p-4">
+                      <span className={`text-xs font-bold px-2 py-1 rounded ${
+                        user.isAdmin ? "bg-purple-100 text-purple-800" : "bg-gray-100 text-gray-800"
+                      }`}>
+                        {user.isAdmin ? "Admin" : "User"}
+                      </span>
+                    </td>
+                    <td className="p-4 text-sm text-gray-500">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="p-4">
+                      <Link href={`/admin/users/${user.id}`} className="text-sm text-blue-600 hover:underline">
+                        View Profile
+                      </Link>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  )
+}
