@@ -1,6 +1,7 @@
 import { prisma } from "@/app/lib/prisma"
 import ClientActions from "./ClientActions"
 import Navbar from "../../components/PublicNavbar"
+import Link from "next/link"
 
 export const instant = false
 
@@ -37,7 +38,7 @@ export default async function ServePage({
     )
   }
 
-  // Check if the vt parameter is present and matches the database (cast to boolean)
+  // Check if the vt parameter is present and matches the database
   const isValidVerificationToken = !!vt && vt === recipient.verificationToken
 
   if (isValidVerificationToken && recipient.status === "PENDING") {
@@ -76,6 +77,20 @@ export default async function ServePage({
               <p className="font-bold text-sm mb-1">Document:</p>
               <p>{recipient.transaction.documents[0]?.title}</p>
             </div>
+          </div>
+
+          {/* PROMO BANNER */}
+          <div className="bg-gradient-to-r from-[#4CAF7D] to-[#3d9c6c] p-6 rounded-lg mb-8 text-white shadow-md">
+            <h3 className="text-lg font-bold mb-2">Need to serve your own documents?</h3>
+            <p className="text-sm mb-4 text-white/90">
+              Join Proof of Servix and generate legally defensible proof of delivery for free.
+            </p>
+            <Link 
+              href="/register" 
+              className="inline-block bg-white text-[#4CAF7D] px-4 py-2 rounded font-bold text-sm hover:bg-gray-100 transition-colors"
+            >
+              Get Started for Free
+            </Link>
           </div>
 
           {recipient.status === "ACKNOWLEDGED" ? (

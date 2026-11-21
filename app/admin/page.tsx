@@ -12,10 +12,16 @@ export default async function AdminDashboard() {
     where: { status: "ACKNOWLEDGED" }
   })
 
+  // Fetch recent transactions
   const recentTransactions = await prisma.transaction.findMany({
     orderBy: { createdAt: "desc" },
     take: 10,
     include: { sender: true, recipients: true }
+  })
+
+  // Fetch all users
+  const allUsers = await prisma.user.findMany({
+    orderBy: { createdAt: "desc" }
   })
 
   return (
@@ -25,6 +31,7 @@ export default async function AdminDashboard() {
         <p className="text-gray-500">Platform overview for ABIMARS INVENTIONS LIMITED</p>
       </div>
 
+      {/* STATS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <p className="text-sm text-gray-500 font-medium">Total Users</p>
@@ -40,7 +47,8 @@ export default async function AdminDashboard() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+      {/* RECENT TRANSACTIONS */}
+      <div className="bg-white rounded-lg shadow-sm border overflow-hidden mb-8">
         <div className="p-6 border-b">
           <h2 className="text-lg font-bold">Recent Transactions</h2>
         </div>
@@ -59,7 +67,6 @@ export default async function AdminDashboard() {
               <tr key={tx.id} className="border-b last:border-0 hover:bg-gray-50">
                 <td className="p-4 font-mono text-sm">{tx.reference}</td>
                 <td className="p-4 text-sm">
-                  {/* This is the clickable link to the user's profile */}
                   <Link href={`/admin/users/${tx.sender.id}`} className="font-medium text-blue-600 hover:underline">
                     {tx.sender.name}
                   </Link>
@@ -80,6 +87,41 @@ export default async function AdminDashboard() {
                 </td>
                 <td className="p-4 text-sm text-gray-500">
                   {new Date(tx.createdAt).toLocaleDateString()}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {/* ALL USERS */}
+      <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+        <div className="p-6 border-b">
+          <h2 className="text-lg font-bold">All Registered Users</h2>
+        </div>
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-gray-50 text-gray-600 text-sm">
+              <th className="p-4 font-semibold">Name</th>
+              <th className="p-4 font-semibold">Email</th>
+              <th className="p-4 font-semibold">Organization</th>
+              <th className="p-4 font-semibold">Joined</th>
+              <th className="p-4 font-semibold">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {allUsers.map((user) => (
+              <tr key={user.id} className="border-b last:border-0 hover:bg-gray-50">
+                <td className="p-4 text-sm font-medium">{user.name}</td>
+                <td className="p-4 text-sm">{user.email}</td>
+                <td className="p-4 text-sm text-gray-500">{user.organization || "N/A"}</td>
+                <td className="p-4 text-sm text-gray-500">
+                  {new Date(user.createdAt).toLocaleDateString()}
+                </td>
+                <td className="p-4">
+                  <Link href={`/admin/users/${user.id}`} className="text-sm text-blue-600 hover:underline">
+                    View Profile
+                  </Link>
                 </td>
               </tr>
             ))}
