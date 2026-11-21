@@ -27,7 +27,7 @@ export async function generateMetadata({
 
   if (!recipient) {
     return {
-      title: "Document Not Found — Proof of Servix",
+      title: "Document Not Found",
       description: "This document link is invalid or has expired.",
     }
   }
@@ -36,19 +36,18 @@ export async function generateMetadata({
   const senderName = recipient.transaction.sender.name
 
   return {
-    title: `${docTitle} — Proof of Servix`,
+    title: `${docTitle}`,
     description: `You have received a secure document from ${senderName}. Click to verify and view.`,
     openGraph: {
-      title: `${docTitle} — Proof of Servix`,
+      title: `${docTitle}`,
       description: `Secure document delivery from ${senderName}.`,
       url: `https://proofofservix.com/serve/${token}`,
-      siteName: "Proof of Servix",
       images: [
         {
           url: "https://proofofservix.com/og-document.png",
           width: 1200,
           height: 630,
-          alt: "Proof of Servix Document",
+          alt: "Secure Document",
         }
       ],
       locale: "en_NG",
@@ -56,7 +55,7 @@ export async function generateMetadata({
     },
     twitter: {
       card: "summary_large_image",
-      title: `${docTitle} — Proof of Servix`,
+      title: `${docTitle}`,
       description: `Secure document delivery from ${senderName}.`,
       images: ["https://proofofservix.com/og-document.png"],
     }
