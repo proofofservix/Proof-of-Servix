@@ -2,9 +2,70 @@ import { prisma } from "@/app/lib/prisma"
 import ClientActions from "./ClientActions"
 import Navbar from "../../components/PublicNavbar"
 import Link from "next/link"
+import type { Metadata } from "next"
 
 export const instant = false
 
+// ─────────────────────────────────────────────
+// WHATSAPP PREVIEW METADATA
+// ─────────────────────────────────────────────
+export async function generateMetadata({ 
+  params 
+}: { 
+  params: Promise<{ token: string }> 
+}): Promise<Metadata> {
+  const { token } = await params
+
+  const recipient = await prisma.transactionRecipient.findUnique({
+    where: { linkTokenHash: token },
+    include: {
+      transaction: {
+        include: { sender: true, documents: true }
+      }
+    }
+  })
+
+  if (!recipient) {
+    return {
+      title: "Document Not Found — Proof of Servix",
+      description: "This document link is invalid or has expired.",
+    }
+  }
+
+  const docTitle = recipient.transaction.documents[0]?.title || "Document"
+  const senderName = recipient.transaction.sender.name
+
+  return {
+    title: `${docTitle} — Proof of Servix`,
+    description: `You have received a secure document from ${senderName}. Click to verify and view.`,
+    openGraph: {
+      title: `${docTitle} — Proof of Servix`,
+      description: `Secure document delivery from ${senderName}.`,
+      url: `https://proofofservix.com/serve/${token}`,
+      siteName: "Proof of Servix",
+      images: [
+        {
+          url: "https://proofofservix.com/og-document.png",
+          width: 1200,
+          height: 630,
+          alt: "Proof of Servix Document",
+        }
+      ],
+      locale: "en_NG",
+      type: "website",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${docTitle} — Proof of Servix`,
+      description: `Secure document delivery from ${senderName}.`,
+      images: ["https://proofofservix.com/og-document.png"],
+    }
+  }
+}
+
+// ─────────────────────────────────────────────
+// MAIN PAGE COMPONENT
+// ─────────────────────────────────────────────
 export default async function ServePage({ 
   params,
   searchParams
@@ -109,7 +170,7 @@ export default async function ServePage({
             />
           )}
 
-          {/* PROMO BANNER - Moved to the bottom, after the main action */}
+          {/* PROMO BANNER - Moved to the bottom */}
           <div className="mt-10 pt-8 border-t text-center">
             <p className="text-sm font-semibold text-gray-700 mb-2">
               Need to serve your own documents?
