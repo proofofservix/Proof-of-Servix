@@ -13,7 +13,6 @@ export default async function UsersDirectory({
   const { search, sort } = await searchParams
   const searchTerm = search || ""
   
-  // 1. Fetch the current logged-in user to check if they are Super Admin
   const session = await getSession()
   const currentUser = session?.userId 
     ? await prisma.user.findUnique({ where: { id: session.userId } }) 
@@ -55,7 +54,6 @@ export default async function UsersDirectory({
         </div>
         <div className="flex gap-4">
           
-          {/* 2. ONLY show the Manage Admin button if currentUser is Super Admin */}
           {currentUser?.isSuperAdmin && (
             <Link 
               href="/admin/manage-admins" 
@@ -111,7 +109,12 @@ export default async function UsersDirectory({
                     </span>
                   </td>
                   <td className="p-4 text-sm text-gray-500">
-                    {new Date(user.createdAt).toLocaleDateString()}
+                    {new Date(user.createdAt).toLocaleString('en-NG', {
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
+                      timeZone: 'Africa/Lagos',
+                      hour12: true
+                    })}
                   </td>
                   <td className="p-4">
                     <Link href={`/admin/users/${user.id}`} className="text-sm text-blue-600 hover:underline">
